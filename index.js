@@ -1,7 +1,7 @@
 const chart = document.getElementById('chart');
 
 const chartWidth = window.innerWidth - 16;
-const chartHeight = window.innerHeight - 16;
+const chartHeight = 150;
 
 chart.setAttribute('width', chartWidth);
 chart.setAttribute('height', chartHeight);
@@ -9,6 +9,10 @@ chart.setAttribute('viewBox', `0 0 ${chartWidth} ${chartHeight}`);
 
 const ascending = (a,b) => a-b;
 const descending = (a,b) => b-a;
+
+const data = chart_data[0];
+
+// data already sorted by date
 
 // draw chart
 const dataX = data.map(point => point.result).sort(ascending);
