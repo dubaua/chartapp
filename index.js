@@ -1,21 +1,24 @@
-const STROKE_WIDTH = 2;
+const STROKE_WIDTH = 3;
 const STROKE_LINECAP = 'square';
+const STROKE_LINEJOIN = 'round';
+const PATH_ACСURACY = 2; // digits after the decimal point
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 const app = document.getElementById('chart-app');
 
 const chartWidth = window.innerWidth;
-const chartHeight = 150;
+const chartHeight = 108;
+const zoomChartHeight = 200;
 
 createChart(chart_data[0]);
 
-function createChart(chartData){
+function createChart(chartData) {
   const { columns, types, names, colors } = chartData;
-  
+
   let chart = {
     x: null,
     y: [],
   };
-  
+
   for (const key in types) {
     if (types.hasOwnProperty(key)) {
       const type = types[key];
@@ -34,28 +37,34 @@ function createChart(chartData){
       }
     }
   }
-  
+
   const chartWrapperEl = createElement('section');
   const chartSvg = createElementNS('svg');
   chartSvg.setAttribute('width', chartWidth);
   chartSvg.setAttribute('height', chartHeight);
   chartSvg.setAttribute('viewBox', [0, 0, chartWidth, chartHeight].join(' '));
   chartSvg.setAttribute('fill', 'none');
-  
+
+  const zoomChartSvg = createElementNS('svg');
+  zoomChartSvg.setAttribute('width', chartWidth);
+  zoomChartSvg.setAttribute('height', zoomChartHeight);
+  zoomChartSvg.setAttribute('viewBox', [0, 0, chartWidth, chartHeight].join(' '));
+  zoomChartSvg.setAttribute('fill', 'none');
+
   const allY = [].concat(...chart.y.map(line => line.data));
-  // const minY = Math.min(...allY);
   const maxY = Math.max(...allY);
-  
+
   chart.y.forEach(line => {
     const path = createElementNS('path');
     path.setAttribute('stroke', line.color);
     path.setAttribute('stroke-width', STROKE_WIDTH);
     path.setAttribute('stroke-linecap', STROKE_LINECAP);
+    path.setAttribute('stroke-linejoin', STROKE_LINEJOIN);
     const { data } = line;
     let d = '';
     for (let i = 0; i < data.length; i++) {
-      const x = (i / (data.length - 1)) * chartWidth + STROKE_WIDTH;
-      const y = ((maxY - data[i]) / maxY) * chartHeight + STROKE_WIDTH;
+      const x = ((i / (data.length - 1)) * (chartWidth - STROKE_WIDTH) + STROKE_WIDTH / 2).toFixed(PATH_ACСURACY);
+      const y = (((maxY - data[i]) / maxY) * (chartHeight - STROKE_WIDTH) + STROKE_WIDTH / 2).toFixed(PATH_ACСURACY);
       if (i === 0) {
         d += `M${x} ${y}`;
       } else {
@@ -63,10 +72,9 @@ function createChart(chartData){
       }
     }
     path.setAttribute('d', d);
-  
-    chartSvg.appendChild(path)
+    chartSvg.appendChild(path);
   });
-  
+
   chartWrapperEl.appendChild(chartSvg);
   app.appendChild(chartWrapperEl);
 }
