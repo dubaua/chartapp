@@ -5,3 +5,47 @@ body {
 #chart-app {
   line-height: 0;
 }
+
+.chart {
+  margin: 18px;
+}
+
+.chart__preview {
+  position: relative;
+  overflow: hidden;
+}
+
+.chart__range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 0 0 2000px rgba(245, 249, 251, 0.75);
+}
+
+.chart__handle {
+  flex-grow: 1;
+  border-top: 1.5px solid rgba(9, 114, 188, 0.14);
+  border-bottom: 1.5px solid rgba(9, 114, 188, 0.14);
+  cursor: pointer;
+}
+
+
+.chart__range:hover .chart__handle {
+  border-color: rgba(9, 114, 188, 0.21);
+}
+
+.chart__adjust {
+  width: 6px;
+  height: 100%;
+  background-color: rgba(9, 114, 188, 0.14);
+  cursor: pointer;
+}
+
+.chart__range:hover .chart__adjust,
+.chart__adjust:hover {
+  background-color: rgba(9, 114, 188, 0.21);
+}
