@@ -120,7 +120,7 @@ function createChart(chartData) {
 
   const adjustLeft = function(e) {
     const delta = (getEventX(e) - startXLeft) / CHART_WIDTH;
-    const direction = delta / Math.abs(delta) || 0;
+    const direction = Math.sign(delta);
     chart.range.start = limit(currentPosLeft + delta, 0, 1);
     redraw(direction);
   };
@@ -142,7 +142,7 @@ function createChart(chartData) {
 
   const adjustRight = function(e) {
     const delta = -(getEventX(e) - startXRight) / CHART_WIDTH;
-    const direction = delta / Math.abs(delta) || 0;
+    const direction = Math.sign(delta);
     chart.range.end = limit(currentPosRight - delta, 0, 1);
     redraw(direction);
   };
