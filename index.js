@@ -1,9 +1,6 @@
 /* CONSTANTS */
 
 const STROKE_WIDTH = 1.5;
-const STROKE_LINECAP = 'round';
-const STROKE_LINEJOIN = 'round';
-const PATH_ACСURACY = 2; // digits after the decimal point
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 const CHART_MARGIN = 18;
 const CHART_WIDTH = window.innerWidth - CHART_MARGIN * 2;
@@ -12,7 +9,7 @@ const ZOOM_CHART_HEIGHT = 100;
 
 const app = document.getElementById('chart-app');
 
-createChart(chart_data[0]);
+chart_data.forEach(element => createChart(element));
 
 function createChart(chartData) {
   const { columns, types, names, colors } = chartData;
@@ -48,10 +45,10 @@ function createChart(chartData) {
 
   const chartSvg = create('svg', {
     attrs: {
-      'width': CHART_WIDTH,
-      'height': CHART_HEIGHT,
-      'viewBox': [0, 0, CHART_WIDTH, CHART_HEIGHT].join(' '),
-      'fill': 'none',
+      width: CHART_WIDTH,
+      height: CHART_HEIGHT,
+      viewBox: `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`,
+      fill: 'none',
     },
   });
 
@@ -62,8 +59,8 @@ function createChart(chartData) {
     const { data } = line;
     let d = '';
     for (let i = 0; i < data.length; i++) {
-      const x = ((i / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2).toFixed(PATH_ACСURACY);
-      const y = (((maxY - data[i]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2).toFixed(PATH_ACСURACY);
+      const x = ((i / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
+      const y = (((maxY - data[i]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
       if (i === 0) {
         d += `M${x} ${y}`;
       } else {
@@ -71,12 +68,10 @@ function createChart(chartData) {
       }
     }
     const path = create('path', {
+      classList: ['chart__preview-path'],
       attrs: {
-        'stroke': line.color,
-        'stroke-width': STROKE_WIDTH,
-        'stroke-linecap': STROKE_LINECAP,
-        'stroke-linejoin': STROKE_LINEJOIN,
-        d
+        stroke: line.color,
+        d,
       },
     });
     chartSvg.appendChild(path);
@@ -174,10 +169,3 @@ function ctt(fn, msg, count = 1) {
   console.timeEnd(msg);
 }
 
-function pt(fn, msg, count = 1) {
-  const s = performance.now();
-  for (let c = 0; c < count; c++) {
-    fn();
-  }
-  console.log(msg + ':', performance.now() - s);
-}
