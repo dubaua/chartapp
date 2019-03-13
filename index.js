@@ -61,11 +61,7 @@ function createChart(chartData) {
     for (let i = 0; i < data.length; i++) {
       const x = ((i / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
       const y = (((maxY - data[i]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
-      if (i === 0) {
-        d += `M${x} ${y}`;
-      } else {
-        d += `L${x} ${y}`;
-      }
+      d += (i === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
     const path = create('path', {
       classList: ['chart__preview-path'],
@@ -143,7 +139,7 @@ function create(tagName, options) {
     ['svg', 'path'].indexOf(tagName) > -1
       ? document.createElementNS('http://www.w3.org/2000/svg', tagName)
       : document.createElement(tagName);
-  const { classList, attrs } = options;
+  const { classList, attrs } = options; // remove to c a
   if (classList) {
     classList.forEach(className => el.classList.add(className));
   }
@@ -159,7 +155,7 @@ function getEventX(e) {
   return e.targetTouches ? e.targetTouches[0].clientX : e.clientX;
 }
 
-/* TESTING */
+/* PERFORMANCE TESTING */
 
 function ctt(fn, msg, count = 1) {
   console.time(msg);
