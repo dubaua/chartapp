@@ -9,7 +9,8 @@ const ZOOM_CHART_HEIGHT = 100;
 
 const app = document.getElementById('chart-app');
 
-chart_data.forEach(element => createChart(element));
+createChart(chart_data[0]);
+// chart_data.forEach(element => createChart(element));
 
 function createChart(chartData) {
   const { columns, types, names, colors } = chartData;
@@ -82,33 +83,54 @@ function createChart(chartData) {
 
   const chartAdjustLeftEl = create('div', { classList: ['chart__adjust'] });
 
+  let startXLeft;
+  let currentPosLeft;
   chartAdjustLeftEl.addEventListener('mousedown', function(e) {
     e.stopPropagation();
-    chartAdjustLeftEl.addEventListener('mousemove', adjustLeft, false);
+    startXLeft = getEventX(e);
+    currentPosLeft = chart.range.start;
+    document.addEventListener('mousemove', adjustLeft, false);
   });
 
-  chartAdjustLeftEl.addEventListener('mouseup', function(e) {
-    e.stopPropagation();
-    chartAdjustLeftEl.removeEventListener('mousemove', adjustLeft, false);
-  });
-
-  chartAdjustLeftEl.addEventListener('mouseout', function(e) {
-    e.stopPropagation();
-    chartAdjustLeftEl.removeEventListener('mousemove', adjustLeft, false);
-  });
-
-  chartAdjustLeftEl.addEventListener('mouseleave', function(e) {
-    e.stopPropagation();
-    chartAdjustLeftEl.removeEventListener('mousemove', adjustLeft, false);
+  document.addEventListener('mouseup', function() {
+    document.removeEventListener('mousemove', adjustLeft, false);
   });
 
   const adjustLeft = function(e) {
-    const x = getEventX(e);
-    console.log(x);
-    // chartRangeEl.style.left = `${newPosX}%`;
+    const delta = (getEventX(e) - startXLeft) / CHART_WIDTH;
+    const direction = delta / Math.abs(delta) || 0;
+    chart.range.start = limit(currentPosLeft + delta, 0, 1);
+    redraw(direction);
   };
 
   const chartAdjustRightEl = create('div', { classList: ['chart__adjust'] });
+
+  let startXRight;
+  let currentPosRight;
+  chartAdjustRightEl.addEventListener('mousedown', function(e) {
+    e.stopPropagation();
+    startXRight = getEventX(e);
+    currentPosRight = chart.range.end;
+    document.addEventListener('mousemove', adjustRight, false);
+  });
+
+  document.addEventListener('mouseup', function() {
+    document.removeEventListener('mousemove', adjustRight, false);
+  });
+
+  const adjustRight = function(e) {
+    const delta = - (getEventX(e) - startXRight) / CHART_WIDTH;
+    const direction = delta / Math.abs(delta) || 0;
+    chart.range.end = limit(currentPosRight - delta, 0, 1);
+    redraw(direction);
+  };
+
+  function redraw(direction) {
+    requestAnimationFrame(function() {
+      chartRangeEl.style.left = `${chart.range.start * 100}%`;
+      chartRangeEl.style.right = `${(1 - chart.range.end) * 100}%`;
+    });
+  }
 
   chartPreviewEl.appendChild(chartSvg);
   chartRangeEl.appendChild(chartAdjustLeftEl);
@@ -150,6 +172,10 @@ function getEventX(e) {
   return e.targetTouches ? e.targetTouches[0].clientX : e.clientX;
 }
 
+function limit(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
 /* PERFORMANCE TESTING */
 
 function ctt(fn, msg, count = 1) {
@@ -159,4 +185,3 @@ function ctt(fn, msg, count = 1) {
   }
   console.timeEnd(msg);
 }
-
