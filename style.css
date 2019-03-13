@@ -15,7 +15,7 @@ body {
   overflow: hidden;
 }
 
-.chart__preview-path {
+.chart__preview svg {
   stroke-width: 1.5;
   stroke-linecap:round;
   stroke-linejoin: round;

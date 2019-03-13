@@ -48,7 +48,6 @@ function createChart(chartData) {
       width: CHART_WIDTH,
       height: CHART_HEIGHT,
       viewBox: `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`,
-      fill: 'none',
     },
   });
 
@@ -64,9 +63,9 @@ function createChart(chartData) {
       d += (i === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
     const path = create('path', {
-      classList: ['chart__preview-path'],
       attrs: {
         stroke: line.color,
+        fill: 'none',
         d,
       },
     });
@@ -80,9 +79,6 @@ function createChart(chartData) {
 
   chartWrapperEl.appendChild(chartPreviewEl);
   app.appendChild(chartWrapperEl);
-
-  const leftLimit = chartPreviewEl.offsetLeft;
-  const chartPreviewWidth = chartPreviewEl.offsetWidth;
 
   const chartAdjustLeftEl = create('div', { classList: ['chart__adjust'] });
 
@@ -109,7 +105,6 @@ function createChart(chartData) {
   const adjustLeft = function(e) {
     const x = getEventX(e);
     console.log(x);
-    const newPosX = ((x - leftLimit) / chartPreviewWidth) * 100;
     // chartRangeEl.style.left = `${newPosX}%`;
   };
 
