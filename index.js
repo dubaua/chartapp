@@ -60,8 +60,8 @@ function createChart(chartData) {
     const { data, name } = line;
     let d = '';
     for (let j = 0; j < data.length; j++) {
-      const x = ((j / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
-      const y = (((maxY - data[j]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
+      const x = Math.trunc((j / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2);
+      const y = Math.trunc(((maxY - data[j]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2);
       d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
     const path = create('path', {
