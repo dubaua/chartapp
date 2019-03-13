@@ -45,43 +45,65 @@ function createChart(chartData) {
   }
 
   const chartSvg = create('svg', {
-    attrs: {
+    a: {
       width: CHART_WIDTH,
       height: CHART_HEIGHT,
       viewBox: `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`,
     },
   });
+  const chartControlsEl = create('div', { c: ['chart__controls'] });
 
   const allY = [].concat(...chart.y.map(line => line.data));
   const maxY = Math.max(...allY);
 
-  chart.y.forEach(line => {
-    const { data } = line;
+  chart.y.forEach((line, i) => {
+    const { data, name } = line;
     let d = '';
-    for (let i = 0; i < data.length; i++) {
-      const x = ((i / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
-      const y = (((maxY - data[i]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
-      d += (i === 0 ? 'M' : 'L') + `${x} ${y}`;
+    for (let j = 0; j < data.length; j++) {
+      const x = ((j / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
+      const y = (((maxY - data[j]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2) | 0;
+      d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
     const path = create('path', {
-      attrs: {
+      a: {
         stroke: line.color,
         fill: 'none',
         d,
       },
     });
     chartSvg.appendChild(path);
+
+    const switcher = create('div', { c: ['switcher'] });
+    const switcherCheckbox = create('input', {
+      c: ['switcher__input'],
+      a: {
+        id: `switcher-${i}`,
+        type: 'checkbox',
+        checked: true,
+      },
+    });
+    const switcherLabel = create('label', {
+      c: ['switcher__label'],
+      a: { for: `switcher-${i}` },
+      d: { textContent: name}
+    });
+    
+    switcher.appendChild(switcherCheckbox);
+    switcher.appendChild(switcherLabel);
+    chartControlsEl.appendChild(switcher);
   });
-
-  const chartWrapperEl = create('section', { classList: ['chart'] });
-  const chartPreviewEl = create('div', { classList: ['chart__preview'] });
-  const chartRangeEl = create('div', { classList: ['chart__range'] });
-  const chartHandleEl = create('div', { classList: ['chart__handle'] });
-
+  
+  
+  const chartWrapperEl = create('section', { c: ['chart'] });
+  const chartPreviewEl = create('div', { c: ['chart__preview'] });
+  const chartRangeEl = create('div', { c: ['chart__range'] });
+  const chartHandleEl = create('div', { c: ['chart__handle'] });
+  
   chartWrapperEl.appendChild(chartPreviewEl);
+  chartWrapperEl.appendChild(chartControlsEl);
   app.appendChild(chartWrapperEl);
 
-  const chartAdjustLeftEl = create('div', { classList: ['chart__adjust'] });
+  const chartAdjustLeftEl = create('div', { c: ['chart__adjust'] });
 
   let startXLeft;
   let currentPosLeft;
@@ -103,7 +125,7 @@ function createChart(chartData) {
     redraw(direction);
   };
 
-  const chartAdjustRightEl = create('div', { classList: ['chart__adjust'] });
+  const chartAdjustRightEl = create('div', { c: ['chart__adjust'] });
 
   let startXRight;
   let currentPosRight;
@@ -119,7 +141,7 @@ function createChart(chartData) {
   });
 
   const adjustRight = function(e) {
-    const delta = - (getEventX(e) - startXRight) / CHART_WIDTH;
+    const delta = -(getEventX(e) - startXRight) / CHART_WIDTH;
     const direction = delta / Math.abs(delta) || 0;
     chart.range.end = limit(currentPosRight - delta, 0, 1);
     redraw(direction);
@@ -141,6 +163,7 @@ function createChart(chartData) {
 
 /* UTILS */
 
+// refactor this
 function getColumnByKey(columns, key) {
   let result;
   columns.forEach(column => {
@@ -151,21 +174,26 @@ function getColumnByKey(columns, key) {
   return result;
 }
 
-function create(tagName, options) {
-  const el =
-    ['svg', 'path'].indexOf(tagName) > -1
-      ? document.createElementNS('http://www.w3.org/2000/svg', tagName)
-      : document.createElement(tagName);
-  const { classList, attrs } = options; // remove to c a
-  if (classList) {
-    classList.forEach(className => el.classList.add(className));
+function create(t, o) {
+  const e =
+    ['svg', 'path'].indexOf(t) > -1
+      ? document.createElementNS('http://www.w3.org/2000/svg', t)
+      : document.createElement(t);
+  const { c, a, d } = o; // classList, attrs, domProps
+  if (c) {
+    c.forEach(n => e.classList.add(n));
   }
-  if (attrs) {
-    for (const key in attrs) {
-      el.setAttribute(key, attrs[key]);
+  if (a) {
+    for (const k in a) {
+      e.setAttribute(k, a[k]);
     }
   }
-  return el;
+  if (d) {
+    for (const p in d) {
+      e[p] = d[p];
+    }
+  }
+  return e;
 }
 
 function getEventX(e) {
