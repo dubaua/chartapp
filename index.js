@@ -163,31 +163,27 @@ function createChart(chartData) {
 
 /* UTILS */
 
-// refactor this
 function getColumnByKey(columns, key) {
-  let result;
-  columns.forEach(column => {
-    if (column[0] === key) {
-      result = column.slice(1);
-    }
-  });
-  return result;
+  return columns.find(item => item[0] === key).slice(1)
 }
 
-function create(t, o) {
+function create(t, { c, a, d }) { // tagName, classList, attrs, domProps
+  // create element by tagName
   const e =
     ['svg', 'path'].indexOf(t) > -1
       ? document.createElementNS('http://www.w3.org/2000/svg', t)
       : document.createElement(t);
-  const { c, a, d } = o; // classList, attrs, domProps
+  // add classes
   if (c) {
     c.forEach(n => e.classList.add(n));
   }
+  // set attributes by key
   if (a) {
     for (const k in a) {
       e.setAttribute(k, a[k]);
     }
   }
+  // assign dom props
   if (d) {
     for (const p in d) {
       e[p] = d[p];
