@@ -46,23 +46,19 @@ function createChart(chartData) {
     }
   }
 
-
-
-  const chartSvg = createElementNS('svg');
-  chartSvg.setAttribute('width', CHART_WIDTH);
-  chartSvg.setAttribute('height', CHART_HEIGHT);
-  chartSvg.setAttribute('viewBox', [0, 0, CHART_WIDTH, CHART_HEIGHT].join(' '));
-  chartSvg.setAttribute('fill', 'none');
+  const chartSvg = create('svg', {
+    attrs: {
+      'width': CHART_WIDTH,
+      'height': CHART_HEIGHT,
+      'viewBox': [0, 0, CHART_WIDTH, CHART_HEIGHT].join(' '),
+      'fill': 'none',
+    },
+  });
 
   const allY = [].concat(...chart.y.map(line => line.data));
   const maxY = Math.max(...allY);
 
   chart.y.forEach(line => {
-    const path = createElementNS('path');
-    path.setAttribute('stroke', line.color);
-    path.setAttribute('stroke-width', STROKE_WIDTH);
-    path.setAttribute('stroke-linecap', STROKE_LINECAP);
-    path.setAttribute('stroke-linejoin', STROKE_LINEJOIN);
     const { data } = line;
     let d = '';
     for (let i = 0; i < data.length; i++) {
@@ -74,16 +70,22 @@ function createChart(chartData) {
         d += `L${x} ${y}`;
       }
     }
-    path.setAttribute('d', d);
+    const path = create('path', {
+      attrs: {
+        'stroke': line.color,
+        'stroke-width': STROKE_WIDTH,
+        'stroke-linecap': STROKE_LINECAP,
+        'stroke-linejoin': STROKE_LINEJOIN,
+        d
+      },
+    });
     chartSvg.appendChild(path);
   });
 
-  const chartWrapperEl = createElement('section', 'chart');
-  const chartPreviewEl = createElement('div', 'chart__preview');
-  const chartRangeEl = createElement('div', 'chart__range');
-  const chartHandleEl = createElement('div', 'chart__handle');
-
-
+  const chartWrapperEl = create('section', { classList: ['chart'] });
+  const chartPreviewEl = create('div', { classList: ['chart__preview'] });
+  const chartRangeEl = create('div', { classList: ['chart__range'] });
+  const chartHandleEl = create('div', { classList: ['chart__handle'] });
 
   chartWrapperEl.appendChild(chartPreviewEl);
   app.appendChild(chartWrapperEl);
@@ -91,7 +93,7 @@ function createChart(chartData) {
   const leftLimit = chartPreviewEl.offsetLeft;
   const chartPreviewWidth = chartPreviewEl.offsetWidth;
 
-  const chartAdjustLeftEl = createElement('div', 'chart__adjust');
+  const chartAdjustLeftEl = create('div', { classList: ['chart__adjust'] });
 
   chartAdjustLeftEl.addEventListener('mousedown', function(e) {
     e.stopPropagation();
@@ -116,18 +118,17 @@ function createChart(chartData) {
   const adjustLeft = function(e) {
     const x = getEventX(e);
     console.log(x);
-    const newPosX = (x - leftLimit) / chartPreviewWidth * 100;
+    const newPosX = ((x - leftLimit) / chartPreviewWidth) * 100;
     // chartRangeEl.style.left = `${newPosX}%`;
-  }
+  };
 
-  const chartAdjustRightEl = createElement('div', 'chart__adjust');
+  const chartAdjustRightEl = create('div', { classList: ['chart__adjust'] });
 
   chartPreviewEl.appendChild(chartSvg);
   chartRangeEl.appendChild(chartAdjustLeftEl);
   chartRangeEl.appendChild(chartHandleEl);
   chartRangeEl.appendChild(chartAdjustRightEl);
   chartPreviewEl.appendChild(chartRangeEl);
-  
 }
 
 /* UTILS */
@@ -142,14 +143,21 @@ function getColumnByKey(columns, key) {
   return result;
 }
 
-function createElement(tagName, className) {
-  const el = document.createElement(tagName);
-  el.classList.add(className);
+function create(tagName, options) {
+  const el =
+    ['svg', 'path'].indexOf(tagName) > -1
+      ? document.createElementNS('http://www.w3.org/2000/svg', tagName)
+      : document.createElement(tagName);
+  const { classList, attrs } = options;
+  if (classList) {
+    classList.forEach(className => el.classList.add(className));
+  }
+  if (attrs) {
+    for (const key in attrs) {
+      el.setAttribute(key, attrs[key]);
+    }
+  }
   return el;
-}
-
-function createElementNS(tagName) {
-  return document.createElementNS('http://www.w3.org/2000/svg', tagName);
 }
 
 function getEventX(e) {
