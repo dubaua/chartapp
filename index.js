@@ -18,11 +18,12 @@ function createChart(chartData) {
   let _chart = {
     x: null,
     y: {},
-    range: {
-      start: 0,
-      end: 1,
-    },
+    start: 0,
+    end: 1,
     el: {},
+    adjustStart: 0,
+    adjustCurrent: 0,
+    adjustTarget: '',
   };
 
   for (const key in types) {
@@ -118,53 +119,36 @@ function createChart(chartData) {
   app.appendChild(chartWrapperEl);
 
   const chartAdjustLeftEl = create('div', { c: ['chart__adjust'] });
-
-  let startXLeft;
-  let currentPosLeft;
-  chartAdjustLeftEl.addEventListener('mousedown', function(e) {
-    e.stopPropagation();
-    startXLeft = getEventX(e);
-    currentPosLeft = _chart.range.start;
-    document.addEventListener('mousemove', adjustLeft, false);
-  });
-
-  document.addEventListener('mouseup', function() {
-    document.removeEventListener('mousemove', adjustLeft, false);
-  });
-
-  const adjustLeft = function(e) {
-    const delta = (getEventX(e) - startXLeft) / CHART_WIDTH;
-    const direction = Math.sign(delta);
-    _chart.range.start = limit(currentPosLeft + delta, 0, 1);
-    redraw(direction);
-  };
-
   const chartAdjustRightEl = create('div', { c: ['chart__adjust'] });
 
-  let startXRight;
-  let currentPosRight;
-  chartAdjustRightEl.addEventListener('mousedown', function(e) {
-    e.stopPropagation();
-    startXRight = getEventX(e);
-    currentPosRight = _chart.range.end;
-    document.addEventListener('mousemove', adjustRight, false);
-  });
+  chartAdjustLeftEl.addEventListener('mousedown', startAdjust('start'), false);
+  chartAdjustRightEl.addEventListener('mousedown', startAdjust('end'), false);
 
   document.addEventListener('mouseup', function() {
-    document.removeEventListener('mousemove', adjustRight, false);
+    document.removeEventListener('mousemove', adjust, false);
   });
 
-  const adjustRight = function(e) {
-    const delta = -(getEventX(e) - startXRight) / CHART_WIDTH;
+  function startAdjust(target) {
+    return function(e) {
+      e.stopPropagation();
+      document.addEventListener('mousemove', adjust, false);
+      _chart.adjustStart = getEventX(e);
+      _chart.adjustCurrent = _chart[target];
+      _chart.adjustTarget = target;
+    }
+  }
+
+  function adjust(e) {
+    const delta = (getEventX(e) - _chart.adjustStart) / CHART_WIDTH;
     const direction = Math.sign(delta);
-    _chart.range.end = limit(currentPosRight - delta, 0, 1);
+    _chart[_chart.adjustTarget] = limit(_chart.adjustCurrent + delta, 0, 1);
     redraw(direction);
   };
 
   function redraw(direction) {
     requestAnimationFrame(function() {
-      chartRangeEl.style.left = `${_chart.range.start * 100}%`;
-      chartRangeEl.style.right = `${(1 - _chart.range.end) * 100}%`;
+      chartRangeEl.style.left = `${_chart.start * 100}%`;
+      chartRangeEl.style.right = `${(1 - _chart.end) * 100}%`;
     });
   }
 
