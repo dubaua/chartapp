@@ -82,7 +82,7 @@ body {
   left: 2px;
   display: block;
   border-radius: 50%;
-  transition: transform .2s ease-in-out;
+  transition: transform .1s ease-in-out;
   transform: scale(1);
   background: white;
 }
