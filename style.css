@@ -1,5 +1,6 @@
 body {
   margin: 0;
+  font: 16px/1 'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
 }
 
 #chart-app {
@@ -18,7 +19,7 @@ body {
 
 .chart__preview svg {
   stroke-width: 1.5;
-  stroke-linecap:round;
+  stroke-linecap: round;
   stroke-linejoin: round;
 }
 
@@ -40,7 +41,6 @@ body {
   cursor: pointer;
 }
 
-
 .chart__range:hover .chart__handle {
   border-color: rgba(9, 114, 188, 0.21);
 }
@@ -57,10 +57,31 @@ body {
   background-color: rgba(9, 114, 188, 0.21);
 }
 
+.chart__controls {
+  margin-top: 22px;
+}
+
+.chart__switcher + .chart__switcher {
+  margin-left: 21px;
+}
+
 .switcher {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+  font-family: inherit;
+  font-size: 18px;
+  letter-spacing: -0.05em;
+  border: 1.5px solid #e6ecf0;
+  color: #43484b;
+  padding: 9px;
+  border-radius: 25px;
+  background: none;
+}
+
+.switcher:focus {
+  outline: none;
+  /* border-color: #008deb; */
 }
 
 .switcher__checkbox {
@@ -82,14 +103,38 @@ body {
   left: 2px;
   display: block;
   border-radius: 50%;
-  transition: transform .1s ease-in-out;
+  transition: transform 0.2s cubic-bezier(0.62, 0, 1, 1);
   transform: scale(1);
   background: white;
 }
+
 .switcher.active .switcher__checkbox:after {
   transform: scale(0);
 }
 
 .switcher__label {
   display: block;
+  margin: 0 14px;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.47, 0, 0.75, 0.72);
+}
+
+.fade-out.active {
+  opacity: 1;
+}
+
+.fade-up {
+  transform: translate(0, -10%);
+  opacity: 0;
+  transition-property: transform opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.47, 0, 0.75, 0.72);
+}
+
+.fade-up.active {
+  transform: translate(0,0);
+  opacity: 1;
 }

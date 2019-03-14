@@ -68,6 +68,7 @@ function createChart(chartData) {
       d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
     const path = create('path', {
+      c: ['fade-out'],
       a: {
         stroke: line.color,
         fill: 'none',
@@ -76,7 +77,7 @@ function createChart(chartData) {
     });
     chartSvg.appendChild(path);
 
-    const switcher = create('button', { c: ['switcher', 'active'] });
+    const switcher = create('button', { c: ['chart__switcher', 'switcher'] });
     const switcherCheckbox = create('span', {
       c: ['switcher__checkbox'],
       s: {
@@ -94,8 +95,11 @@ function createChart(chartData) {
     switcher.appendChild(switcherLabel);
     chartControlsEl.appendChild(switcher);
     _chart.y[line.key].switcher = switcher;
+    _chart.y[line.key].path = path;
   });
-  
+
+  redrawLines();
+
   function toggleSwitch(key) {
     return function() {
       const line = _chart.y[key];
@@ -165,9 +169,9 @@ function createChart(chartData) {
   }
 
   function redrawLines() {
-    console.log('redrawLines');
     Object.values(_chart.y).forEach(line => {
       toggleClass(line.switcher, line.active, 'active');
+      toggleClass(line.path, line.active, 'active');
     });
   }
 
