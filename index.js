@@ -16,7 +16,7 @@ function createChart(chartData) {
   const { columns, types, names, colors } = chartData;
 
   let _chart = {
-    x: null,
+    x: [],
     y: {},
     start: 0,
     end: 1,
@@ -63,9 +63,11 @@ function createChart(chartData) {
   _chartY.forEach(line => {
     const { data, name, key, color } = line;
     let d = '';
+    const sx = CHART_WIDTH / (data.length - 1);
+    const sy = CHART_HEIGHT / maxY;
     for (let j = 0; j < data.length; j++) {
-      const x = Math.trunc((j / (data.length - 1)) * CHART_WIDTH);
-      const y = Math.trunc(((maxY - data[j]) / maxY) * CHART_HEIGHT);
+      const x = Math.trunc(j * sx);
+      const y = Math.trunc((maxY - data[j]) * sy);
       d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
     const path = create('path', {
