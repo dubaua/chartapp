@@ -33,7 +33,7 @@ function createChart(chartData) {
         case 'line':
           chart.y.push({
             key,
-            data: getColumnByKey(columns, key),
+            data: getByFirst(columns, key).slice(1),
             color: colors[key],
             name: names[key],
             active: true,
@@ -162,8 +162,8 @@ function createChart(chartData) {
 
 /* UTILS */
 
-function getColumnByKey(columns, key) {
-  return columns.find(item => item[0] === key).slice(1)
+function getByFirst(array, key) {
+  return array.find(item => item[0] === key)
 }
 
 function create(t, { c, a, d }) { // tagName, classList, attrs, domProps
