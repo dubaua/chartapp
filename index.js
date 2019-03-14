@@ -60,8 +60,8 @@ function createChart(chartData) {
   const allY = [].concat(..._chartY.map(line => line.data));
   const maxY = Math.max(...allY);
 
-  _chartY.forEach((line) => {
-    const { data, name } = line;
+  _chartY.forEach(line => {
+    const { data, name, key, color } = line;
     let d = '';
     for (let j = 0; j < data.length; j++) {
       const x = Math.trunc((j / (data.length - 1)) * CHART_WIDTH);
@@ -71,32 +71,44 @@ function createChart(chartData) {
     const path = create('path', {
       c: ['fade-out'],
       a: {
-        stroke: line.color,
+        stroke: color,
         fill: 'none',
         d,
       },
     });
     chartSvg.appendChild(path);
 
-    const switcher = create('button', { c: ['chart__switcher', 'switcher'] });
-    const switcherCheckbox = create('span', {
-      c: ['switcher__checkbox'],
-      s: {
-        backgroundColor: line.color,
-      }
-    });
-    const switcherLabel = create('span', {
-      c: ['switcher__label'],
-      d: { textContent: name}
-    });
-
-    switcher.addEventListener('click', toggleSwitch(line.key), false);
-    
-    switcher.appendChild(switcherCheckbox);
-    switcher.appendChild(switcherLabel);
+    const switcher = create(
+      'button',
+      {
+        c: ['chart__switcher', 'switcher'],
+        l: {
+          click: toggleSwitch(key),
+        },
+      },
+      [
+        [
+          'span',
+          {
+            c: ['switcher__checkbox'],
+            s: {
+              backgroundColor: color,
+            },
+          },
+        ],
+        [
+          'span',
+          {
+            c: ['switcher__label'],
+            d: { textContent: name },
+          },
+        ],
+      ]
+    );
     chartControlsEl.appendChild(switcher);
-    _chart.y[line.key].switcher = switcher;
-    _chart.y[line.key].path = path;
+
+    _chart.y[key].switcher = switcher;
+    _chart.y[key].path = path;
   });
 
   redrawLines();
@@ -106,14 +118,14 @@ function createChart(chartData) {
       const line = _chart.y[key];
       line.active = !line.active;
       redrawLines();
-    }
+    };
   }
-  
+
   const chartWrapperEl = create('section', { c: ['chart'] });
   const chartPreviewEl = create('div', { c: ['chart__preview'] });
   const chartRangeEl = create('div', { c: ['chart__range'] });
   const chartHandleEl = create('div', { c: ['chart__handle'] });
-  
+
   chartWrapperEl.appendChild(chartPreviewEl);
   chartWrapperEl.appendChild(chartControlsEl);
   app.appendChild(chartWrapperEl);
@@ -135,7 +147,7 @@ function createChart(chartData) {
       _chart.adjustStart = getEventX(e);
       _chart.adjustCurrent = _chart[target];
       _chart.adjustTarget = target;
-    }
+    };
   }
 
   function adjust(e) {
@@ -143,7 +155,7 @@ function createChart(chartData) {
     const direction = Math.sign(delta);
     _chart[_chart.adjustTarget] = limit(_chart.adjustCurrent + delta, 0, 1);
     redraw(direction);
-  };
+  }
 
   function redraw(direction) {
     requestAnimationFrame(function() {
@@ -171,10 +183,10 @@ function createChart(chartData) {
 /* UTILS */
 
 function getByFirst(array, key) {
-  return array.find(item => item[0] === key)
+  return array.find(item => item[0] === key);
 }
 
-function create(t, { c, a, d, s }) { // tagName, classList, attrs, domProps, style
+function create(t, { c, a, d, s, l }, h) {
   // create element by tagName
   const e =
     ['svg', 'path'].indexOf(t) > -1
@@ -182,7 +194,7 @@ function create(t, { c, a, d, s }) { // tagName, classList, attrs, domProps, sty
       : document.createElement(t);
   // add classes
   if (c) {
-    c.forEach(n => e.classList.add(n));
+    c.forEach(i => e.classList.add(i));
   }
   // set attributes by key
   if (a) {
@@ -192,15 +204,25 @@ function create(t, { c, a, d, s }) { // tagName, classList, attrs, domProps, sty
   }
   // assign dom props
   if (d) {
-    for (const p in d) {
-      e[p] = d[p];
+    for (const k in d) {
+      e[k] = d[k];
     }
   }
   // assign styles
   if (s) {
-    for (const r in s) {
-      e.style[r] = s[r];
+    for (const k in s) {
+      e.style[k] = s[k];
     }
+  }
+  // bind listeners
+  if (l) {
+    for (const k in l) {
+      e.addEventListener(k, l[k], false);
+    }
+  }
+  // create childs
+  if (h) {
+    h.forEach(i => e.appendChild(create(...i)));
   }
   return e;
 }
