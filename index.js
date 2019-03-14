@@ -5,6 +5,7 @@ const CHART_MARGIN = 18;
 const CHART_WIDTH = window.innerWidth - CHART_MARGIN * 2;
 const CHART_HEIGHT = 54;
 const ZOOM_CHART_HEIGHT = 100;
+const DAYS_TO_SHOW = 28;
 
 const app = document.getElementById('chart-app');
 
@@ -45,6 +46,8 @@ function createChart(chartData) {
       }
     }
   }
+
+  _chart.start = 1 - (DAYS_TO_SHOW / _chart.x.length);
 
   const chartSvg = create('svg', {
     a: {
@@ -113,8 +116,6 @@ function createChart(chartData) {
     _chart.y[key].path = path;
   });
 
-  redrawLines();
-
   function toggleSwitch(key) {
     return function() {
       const line = _chart.y[key];
@@ -178,6 +179,9 @@ function createChart(chartData) {
   chartRangeEl.appendChild(chartHandleEl);
   chartRangeEl.appendChild(chartAdjustRightEl);
   chartPreviewEl.appendChild(chartRangeEl);
+
+  redraw();
+  redrawLines();
 
   return _chart;
 }
