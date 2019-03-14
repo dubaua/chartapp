@@ -166,7 +166,7 @@ function getByFirst(array, key) {
   return array.find(item => item[0] === key)
 }
 
-function create(t, { c, a, d }) { // tagName, classList, attrs, domProps
+function create(t, { c, a, d, s }) { // tagName, classList, attrs, domProps, style
   // create element by tagName
   const e =
     ['svg', 'path'].indexOf(t) > -1
@@ -186,6 +186,12 @@ function create(t, { c, a, d }) { // tagName, classList, attrs, domProps
   if (d) {
     for (const p in d) {
       e[p] = d[p];
+    }
+  }
+  // assign styles
+  if (s) {
+    for (const r in s) {
+      e.style[r] = s[r];
     }
   }
   return e;
