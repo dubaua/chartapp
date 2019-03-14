@@ -56,3 +56,40 @@ body {
 .chart__adjust:hover {
   background-color: rgba(9, 114, 188, 0.21);
 }
+
+.switcher {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.switcher__checkbox {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  display: block;
+  border-radius: 50%;
+  background-image: url('data:image/svg+xml;utf8,<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.3233 18.3232L10 16C9.44774 15.4477 8.55231 15.4477 8.00003 16C7.44774 16.5523 7.44774 17.4477 8.00003 18L11.4697 21.4697C11.8093 21.8092 12.2698 22 12.75 22C13.2302 22 13.6908 21.8092 14.0304 21.4697L22 13.5C22.5523 12.9477 22.5523 12.0523 22 11.5C21.4477 10.9477 20.5523 10.9477 20 11.5L13.1768 18.3232C13.0636 18.4364 12.9101 18.5 12.75 18.5C12.59 18.5 12.4364 18.4364 12.3233 18.3232Z" fill="white"/></svg>');
+}
+
+.switcher__checkbox:after {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  top: 2px;
+  left: 2px;
+  display: block;
+  border-radius: 50%;
+  transition: transform .2s ease-in-out;
+  transform: scale(1);
+  background: white;
+}
+.switcher.active .switcher__checkbox:after {
+  transform: scale(0);
+}
+
+.switcher__label {
+  display: block;
+}

@@ -8,19 +8,21 @@ const ZOOM_CHART_HEIGHT = 100;
 
 const app = document.getElementById('chart-app');
 
-createChart(chart_data[0]);
+const chart0 = createChart(chart_data[0]);
+console.log(chart0);
 // chart_data.forEach(element => createChart(element));
 
 function createChart(chartData) {
   const { columns, types, names, colors } = chartData;
 
-  let chart = {
+  let _chart = {
     x: null,
-    y: [],
+    y: {},
     range: {
       start: 0,
       end: 1,
     },
+    el: {},
   };
 
   for (const key in types) {
@@ -28,16 +30,16 @@ function createChart(chartData) {
       const type = types[key];
       switch (type) {
         case 'x':
-          chart.x = getColumnByKey(columns, key);
+          _chart.x = getByFirst(columns, key).slice(1);
           break;
         case 'line':
-          chart.y.push({
+          _chart.y[key] = {
             key,
             data: getByFirst(columns, key).slice(1),
             color: colors[key],
             name: names[key],
             active: true,
-          });
+          };
           break;
       }
     }
@@ -52,10 +54,12 @@ function createChart(chartData) {
   });
   const chartControlsEl = create('div', { c: ['chart__controls'] });
 
-  const allY = [].concat(...chart.y.map(line => line.data));
+  const _chartY = Object.values(_chart.y);
+
+  const allY = [].concat(..._chartY.map(line => line.data));
   const maxY = Math.max(...allY);
 
-  chart.y.forEach((line, i) => {
+  _chartY.forEach((line) => {
     const { data, name } = line;
     let d = '';
     for (let j = 0; j < data.length; j++) {
@@ -72,26 +76,33 @@ function createChart(chartData) {
     });
     chartSvg.appendChild(path);
 
-    const switcher = create('div', { c: ['switcher'] });
-    const switcherCheckbox = create('input', {
-      c: ['switcher__input'],
-      a: {
-        id: `switcher-${i}`,
-        type: 'checkbox',
-        checked: true,
-      },
+    const switcher = create('button', { c: ['switcher', 'active'] });
+    const switcherCheckbox = create('span', {
+      c: ['switcher__checkbox'],
+      s: {
+        backgroundColor: line.color,
+      }
     });
-    const switcherLabel = create('label', {
+    const switcherLabel = create('span', {
       c: ['switcher__label'],
-      a: { for: `switcher-${i}` },
       d: { textContent: name}
     });
+
+    switcher.addEventListener('click', toggleSwitch(line.key), false);
     
     switcher.appendChild(switcherCheckbox);
     switcher.appendChild(switcherLabel);
     chartControlsEl.appendChild(switcher);
+    _chart.y[line.key].switcher = switcher;
   });
   
+  function toggleSwitch(key) {
+    return function() {
+      const line = _chart.y[key];
+      line.active = !line.active;
+      redrawLines();
+    }
+  }
   
   const chartWrapperEl = create('section', { c: ['chart'] });
   const chartPreviewEl = create('div', { c: ['chart__preview'] });
@@ -109,7 +120,7 @@ function createChart(chartData) {
   chartAdjustLeftEl.addEventListener('mousedown', function(e) {
     e.stopPropagation();
     startXLeft = getEventX(e);
-    currentPosLeft = chart.range.start;
+    currentPosLeft = _chart.range.start;
     document.addEventListener('mousemove', adjustLeft, false);
   });
 
@@ -120,7 +131,7 @@ function createChart(chartData) {
   const adjustLeft = function(e) {
     const delta = (getEventX(e) - startXLeft) / CHART_WIDTH;
     const direction = Math.sign(delta);
-    chart.range.start = limit(currentPosLeft + delta, 0, 1);
+    _chart.range.start = limit(currentPosLeft + delta, 0, 1);
     redraw(direction);
   };
 
@@ -131,7 +142,7 @@ function createChart(chartData) {
   chartAdjustRightEl.addEventListener('mousedown', function(e) {
     e.stopPropagation();
     startXRight = getEventX(e);
-    currentPosRight = chart.range.end;
+    currentPosRight = _chart.range.end;
     document.addEventListener('mousemove', adjustRight, false);
   });
 
@@ -142,14 +153,21 @@ function createChart(chartData) {
   const adjustRight = function(e) {
     const delta = -(getEventX(e) - startXRight) / CHART_WIDTH;
     const direction = Math.sign(delta);
-    chart.range.end = limit(currentPosRight - delta, 0, 1);
+    _chart.range.end = limit(currentPosRight - delta, 0, 1);
     redraw(direction);
   };
 
   function redraw(direction) {
     requestAnimationFrame(function() {
-      chartRangeEl.style.left = `${chart.range.start * 100}%`;
-      chartRangeEl.style.right = `${(1 - chart.range.end) * 100}%`;
+      chartRangeEl.style.left = `${_chart.range.start * 100}%`;
+      chartRangeEl.style.right = `${(1 - _chart.range.end) * 100}%`;
+    });
+  }
+
+  function redrawLines() {
+    console.log('redrawLines');
+    Object.values(_chart.y).forEach(line => {
+      toggleClass(line.switcher, line.active, 'active');
     });
   }
 
@@ -158,6 +176,8 @@ function createChart(chartData) {
   chartRangeEl.appendChild(chartHandleEl);
   chartRangeEl.appendChild(chartAdjustRightEl);
   chartPreviewEl.appendChild(chartRangeEl);
+
+  return _chart;
 }
 
 /* UTILS */
@@ -195,6 +215,14 @@ function create(t, { c, a, d, s }) { // tagName, classList, attrs, domProps, sty
     }
   }
   return e;
+}
+
+function toggleClass(el, state, className) {
+  if (state) {
+    el.classList.add(className);
+  } else {
+    el.classList.remove(className);
+  }
 }
 
 function getEventX(e) {
