@@ -56,7 +56,7 @@ function createChart(chartData) {
       viewBox: `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`,
     },
   });
-  const chartControlsEl = create('div', { c: ['chart__controls'] });
+  const chartControlsEl = create('div.chart__controls');
 
   const _chartY = Object.values(_chart.y);
 
@@ -73,8 +73,7 @@ function createChart(chartData) {
       const y = Math.trunc((maxY - data[j]) * sy);
       d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
-    const path = create('path', {
-      c: ['fade-out'],
+    const path = create('path.fade-out', {
       a: {
         stroke: color,
         fill: 'none',
@@ -84,27 +83,24 @@ function createChart(chartData) {
     chartSvg.appendChild(path);
 
     const switcher = create(
-      'button',
+      'button.chart__switcher.switcher',
       {
-        c: ['chart__switcher', 'switcher'],
         l: {
           click: toggleSwitch(key),
         },
       },
       [
         [
-          'span',
+          'span.switcher__checkbox',
           {
-            c: ['switcher__checkbox'],
             s: {
               backgroundColor: color,
             },
           },
         ],
         [
-          'span',
+          'span.switcher__label',
           {
-            c: ['switcher__label'],
             d: { textContent: name },
           },
         ],
@@ -124,17 +120,17 @@ function createChart(chartData) {
     };
   }
 
-  const chartWrapperEl = create('section', { c: ['chart'] });
-  const chartPreviewEl = create('div', { c: ['chart__preview'] });
-  const chartRangeEl = create('div', { c: ['chart__range'] });
-  const chartHandleEl = create('div', { c: ['chart__handle'] });
+  const chartWrapperEl = create('section.chart');
+  const chartPreviewEl = create('div.chart__preview');
+  const chartRangeEl = create('div.chart__range');
+  const chartHandleEl = create('div.chart__handle');
 
   chartWrapperEl.appendChild(chartPreviewEl);
   chartWrapperEl.appendChild(chartControlsEl);
   app.appendChild(chartWrapperEl);
 
-  const chartAdjustLeftEl = create('div', { c: ['chart__adjust'] });
-  const chartAdjustRightEl = create('div', { c: ['chart__adjust'] });
+  const chartAdjustLeftEl = create('div.chart__adjust');
+  const chartAdjustRightEl = create('div.chart__adjust');
 
   chartAdjustLeftEl.addEventListener('mousedown', startAdjust('start'), false);
   chartAdjustRightEl.addEventListener('mousedown', startAdjust('end'), false);
@@ -192,14 +188,15 @@ function getByFirst(array, key) {
   return array.find(item => item[0] === key);
 }
 
-function create(t, { c, a, d, s, l }, h) {
+function create(t, { a, d, s, l } = {}, h) {
+  const [ _t, ...c ] = t.split('.');
   // create element by tagName
   const e =
-    ['svg', 'path'].indexOf(t) > -1
-      ? document.createElementNS('http://www.w3.org/2000/svg', t)
-      : document.createElement(t);
+    ['svg', 'path'].indexOf(_t) > -1
+      ? document.createElementNS('http://www.w3.org/2000/svg', _t)
+      : document.createElement(_t);
   // add classes
-  if (c) {
+  if (c.length) {
     c.forEach(i => e.classList.add(i));
   }
   // set attributes by key
