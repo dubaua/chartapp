@@ -1,6 +1,5 @@
 /* CONSTANTS */
 
-const STROKE_WIDTH = 1.5;
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 const CHART_MARGIN = 18;
 const CHART_WIDTH = window.innerWidth - CHART_MARGIN * 2;
@@ -60,8 +59,8 @@ function createChart(chartData) {
     const { data, name } = line;
     let d = '';
     for (let j = 0; j < data.length; j++) {
-      const x = Math.trunc((j / (data.length - 1)) * (CHART_WIDTH - STROKE_WIDTH) + STROKE_WIDTH / 2);
-      const y = Math.trunc(((maxY - data[j]) / maxY) * (CHART_HEIGHT - STROKE_WIDTH) + STROKE_WIDTH / 2);
+      const x = Math.trunc((j / (data.length - 1)) * CHART_WIDTH);
+      const y = Math.trunc(((maxY - data[j]) / maxY) * CHART_HEIGHT);
       d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
     const path = create('path', {
