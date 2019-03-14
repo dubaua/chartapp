@@ -3,10 +3,6 @@ body {
   font: 16px/1 'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
 }
 
-#chart-app {
-  line-height: 0;
-}
-
 .chart {
   margin: 18px;
 }
@@ -15,6 +11,7 @@ body {
   position: relative;
   overflow: hidden;
   padding: 1.5px 0;
+  line-height: 0;
 }
 
 .chart__preview svg {
