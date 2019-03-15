@@ -225,7 +225,7 @@ function create(t, { a, d, s, l } = {}, h) {
   }
   // create childs
   if (h) {
-    h.forEach(i => e.appendChild(create(...i)));
+    h.forEach(i => (i instanceof Element ? e.appendChild(i) : e.appendChild(create(...i))));
   }
   return e;
 }
