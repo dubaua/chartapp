@@ -47,7 +47,7 @@ function createChart(chartData) {
     }
   }
 
-  _chart.start = 1 - (DAYS_TO_SHOW / _chart.x.length);
+  _chart.start = 1 - DAYS_TO_SHOW / _chart.x.length;
 
   const chartSvg = create('svg', {
     a: {
@@ -82,62 +82,25 @@ function createChart(chartData) {
     });
     chartSvg.appendChild(path);
 
-    const switcher = create(
-      'button.chart__switcher.switcher',
-      {
-        l: {
-          click: toggleSwitch(key),
-        },
-      },
-      [
-        [
-          'span.switcher__checkbox',
-          {
-            s: {
-              backgroundColor: color,
-            },
-          },
-        ],
-        [
-          'span.switcher__label',
-          {
-            d: { textContent: name },
-          },
-        ],
-      ]
-    );
+    const switcher = create('button.chart__switcher.switcher', { l: { click: toggleSwitch(key) } }, [
+      ['span.switcher__checkbox', { s: { backgroundColor: color } }],
+      ['span.switcher__label', { d: { textContent: name } }],
+    ]);
     chartControlsEl.appendChild(switcher);
 
     _chart.y[key].switcher = switcher;
     _chart.y[key].path = path;
   });
 
-  function toggleSwitch(key) {
-    return function() {
-      const line = _chart.y[key];
-      line.active = !line.active;
-      redrawLines();
-    };
-  }
+  const chartRangeEl = create('div.chart__range', {}, [
+    ['div.chart__adjust', { l: { mousedown: startAdjust('start') } }],
+    ['div.chart__handle', { l: { mousedown: startMove } }],
+    ['div.chart__adjust', { l: { mousedown: startAdjust('end') } }],
+  ]);
 
-  const chartWrapperEl = create('section.chart');
-  const chartPreviewEl = create('div.chart__preview');
-  const chartRangeEl = create('div.chart__range');
-  const chartHandleEl = create('div.chart__handle');
+  const chartEl = create('section.chart', {}, [['div.chart__preview', {}, [chartSvg, chartRangeEl]], chartControlsEl]);
 
-  chartWrapperEl.appendChild(chartPreviewEl);
-  chartWrapperEl.appendChild(chartControlsEl);
-  app.appendChild(chartWrapperEl);
-
-  const chartAdjustLeftEl = create('div.chart__adjust');
-  const chartAdjustRightEl = create('div.chart__adjust');
-
-  chartAdjustLeftEl.addEventListener('mousedown', startAdjust('start'), false);
-  chartAdjustRightEl.addEventListener('mousedown', startAdjust('end'), false);
-
-  document.addEventListener('mouseup', function() {
-    document.removeEventListener('mousemove', adjust, false);
-  });
+  app.appendChild(chartEl);
 
   function startAdjust(target) {
     return function(e) {
@@ -151,9 +114,40 @@ function createChart(chartData) {
 
   function adjust(e) {
     const delta = (getEventX(e) - _chart.adjustStart) / CHART_WIDTH;
-    const direction = Math.sign(delta);
     _chart[_chart.adjustTarget] = limit(_chart.adjustCurrent + delta, 0, 1);
-    redraw(direction);
+    redraw(Math.sign(delta));
+  }
+
+  function startMove(e) {
+    e.stopPropagation();
+    document.addEventListener('mousemove', move, false);
+    _chart.adjustStart = getEventX(e);
+    _chart.adjustCurrent = [_chart.start, _chart.end];
+  }
+
+  function move(e) {
+    const delta = (getEventX(e) - _chart.adjustStart) / CHART_WIDTH;
+    const start = _chart.adjustCurrent[0] + delta;
+    const end = _chart.adjustCurrent[1] + delta;
+    if (start < 0 || end > 1) {
+      return;
+    }
+    _chart.start = limit(start, 0, 1);
+    _chart.end = limit(end, 0, 1);
+    redraw(Math.sign(delta));
+  }
+
+  document.addEventListener('mouseup', function() {
+    document.removeEventListener('mousemove', adjust, false);
+    document.removeEventListener('mousemove', move, false);
+  });
+
+  function toggleSwitch(key) {
+    return function() {
+      const line = _chart.y[key];
+      line.active = !line.active;
+      redrawLines();
+    };
   }
 
   function redraw(direction) {
@@ -170,12 +164,6 @@ function createChart(chartData) {
     });
   }
 
-  chartPreviewEl.appendChild(chartSvg);
-  chartRangeEl.appendChild(chartAdjustLeftEl);
-  chartRangeEl.appendChild(chartHandleEl);
-  chartRangeEl.appendChild(chartAdjustRightEl);
-  chartPreviewEl.appendChild(chartRangeEl);
-
   redraw();
   redrawLines();
 
@@ -189,7 +177,7 @@ function getByFirst(array, key) {
 }
 
 function create(t, { a, d, s, l } = {}, h) {
-  const [ _t, ...c ] = t.split('.');
+  const [_t, ...c] = t.split('.');
   // create element by tagName
   const e =
     ['svg', 'path'].indexOf(_t) > -1
