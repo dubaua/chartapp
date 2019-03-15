@@ -3,7 +3,6 @@
 const MS_IN_DAY = 1000 * 60 * 60 * 24;
 const CHART_MARGIN = 18;
 const CHART_WIDTH = window.innerWidth - CHART_MARGIN * 2;
-const CHART_HEIGHT = 54;
 const ZOOM_CHART_HEIGHT = 100;
 const DAYS_TO_SHOW = 28;
 
@@ -53,9 +52,8 @@ function createChart({ columns, types, names, colors }) {
           'svg',
           {
             a: {
-              width: CHART_WIDTH,
-              height: CHART_HEIGHT,
-              viewBox: `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`,
+              viewBox: `0 0 ${chartOptions.x.length - 1} ${maxY}`,
+              preserveAspectRatio: 'none',
             },
           },
           chartOptionsY.map(createPath),
@@ -75,19 +73,12 @@ function createChart({ columns, types, names, colors }) {
   ]);
 
   function createPath({ data, key, color }) {
-    let d = '';
-    const sx = CHART_WIDTH / (data.length - 1);
-    const sy = CHART_HEIGHT / maxY;
-    for (let j = 0; j < data.length; j++) {
-      const x = Math.trunc(j * sx);
-      const y = Math.trunc((maxY - data[j]) * sy);
-      d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
-    }
     return create('path.fade-out', {
       a: {
         stroke: color,
         fill: 'none',
-        d,
+        'vector-effect': 'non-scaling-stroke',
+        d: data.reduce((d, y, x) => d+= (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`, ''),
       },
       r: bindRel(chartOptions.y[key], 'path'),
     });
@@ -172,7 +163,7 @@ function createChart({ columns, types, names, colors }) {
   redraw();
   redrawLines();
 
-  chartEl.$options = chartOptions
+  chartEl.$chart = chartOptions
   return chartEl;
 }
 
@@ -265,6 +256,11 @@ function ctt(fn, msg, count = 1) {
 
 const app = document.getElementById('chart-app');
 const chart0 = createChart(chart_data[0]);
-console.log(chart0.$options);
+console.log(chart0.$chart);
 app.appendChild(chart0);
-// chart_data.forEach(element => app.appendChild(createChart(element)));
+// chart_data.forEach(element => {
+//   console.time('creating');
+//   const chart = createChart(element)
+//   console.timeEnd('creating');
+//   app.appendChild(chart);
+// });
