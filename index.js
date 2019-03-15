@@ -7,21 +7,12 @@ const CHART_HEIGHT = 54;
 const ZOOM_CHART_HEIGHT = 100;
 const DAYS_TO_SHOW = 28;
 
-const app = document.getElementById('chart-app');
-
-const chart0 = createChart(chart_data[0]);
-console.log(chart0);
-// chart_data.forEach(element => createChart(element));
-
-function createChart(chartData) {
-  const { columns, types, names, colors } = chartData;
-
-  let _chart = {
+function createChart({ columns, types, names, colors }) {
+  let chartOptions = {
     x: [],
     y: {},
     start: 0,
     end: 1,
-    el: {},
     adjustStart: 0,
     adjustCurrent: 0,
     adjustTarget: '',
@@ -32,10 +23,10 @@ function createChart(chartData) {
       const type = types[key];
       switch (type) {
         case 'x':
-          _chart.x = getByFirst(columns, key).slice(1);
+          chartOptions.x = getByFirst(columns, key).slice(1);
           break;
         case 'line':
-          _chart.y[key] = {
+          chartOptions.y[key] = {
             key,
             data: getByFirst(columns, key).slice(1),
             color: colors[key],
@@ -47,24 +38,43 @@ function createChart(chartData) {
     }
   }
 
-  _chart.start = 1 - DAYS_TO_SHOW / _chart.x.length;
+  chartOptions.start = 1 - DAYS_TO_SHOW / chartOptions.x.length;
 
-  const chartSvg = create('svg', {
-    a: {
-      width: CHART_WIDTH,
-      height: CHART_HEIGHT,
-      viewBox: `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`,
-    },
-  });
-  const chartControlsEl = create('div.chart__controls');
-
-  const _chartY = Object.values(_chart.y);
-
-  const allY = [].concat(..._chartY.map(line => line.data));
+  const chartOptionsY = Object.values(chartOptions.y);
+  const allY = [].concat(...chartOptionsY.map(line => line.data));
   const maxY = Math.max(...allY);
 
-  _chartY.forEach(line => {
-    const { data, name, key, color } = line;
+  const chartEl = create('section.chart', {}, [
+    [
+      'div.chart__preview',
+      {},
+      [
+        [
+          'svg',
+          {
+            a: {
+              width: CHART_WIDTH,
+              height: CHART_HEIGHT,
+              viewBox: `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`,
+            },
+          },
+          chartOptionsY.map(createPath),
+        ],
+        [
+          'div.chart__range',
+          { r: bindRel(chartOptions, 'rangeEl') },
+          [
+            ['div.chart__adjust', { l: { mousedown: startAdjust('start') } }],
+            ['div.chart__handle', { l: { mousedown: startMove } }],
+            ['div.chart__adjust', { l: { mousedown: startAdjust('end') } }],
+          ],
+        ],
+      ],
+    ],
+    ['div.chart__controls', {}, chartOptionsY.map(createSwitcher)],
+  ]);
+
+  function createPath({ data, key, color }) {
     let d = '';
     const sx = CHART_WIDTH / (data.length - 1);
     const sy = CHART_HEIGHT / maxY;
@@ -73,78 +83,68 @@ function createChart(chartData) {
       const y = Math.trunc((maxY - data[j]) * sy);
       d += (j === 0 ? 'M' : 'L') + `${x} ${y}`;
     }
-    const path = create('path.fade-out', {
+    return create('path.fade-out', {
       a: {
         stroke: color,
         fill: 'none',
         d,
       },
+      r: bindRel(chartOptions.y[key], 'path'),
     });
-    chartSvg.appendChild(path);
+  }
 
-    const switcher = create('button.chart__switcher.switcher', { l: { click: toggleSwitch(key) } }, [
-      ['span.switcher__checkbox', { s: { backgroundColor: color } }],
-      ['span.switcher__label', { d: { textContent: name } }],
-    ]);
-    chartControlsEl.appendChild(switcher);
-
-    _chart.y[key].switcher = switcher;
-    _chart.y[key].path = path;
-  });
-
-  const chartRangeEl = create('div.chart__range', {}, [
-    ['div.chart__adjust', { l: { mousedown: startAdjust('start') } }],
-    ['div.chart__handle', { l: { mousedown: startMove } }],
-    ['div.chart__adjust', { l: { mousedown: startAdjust('end') } }],
-  ]);
-
-  const chartEl = create('section.chart', {}, [['div.chart__preview', {}, [chartSvg, chartRangeEl]], chartControlsEl]);
-
-  app.appendChild(chartEl);
+  function createSwitcher({ name, key, color }) {
+    return create(
+      'button.chart__switcher.switcher',
+      {
+        l: { click: toggleSwitch(key) },
+        r: bindRel(chartOptions.y[key], 'switcher'),
+      },
+      [
+        ['span.switcher__checkbox', { s: { backgroundColor: color } }],
+        ['span.switcher__label', { d: { textContent: name } }],
+      ]
+    );
+  }
 
   function startAdjust(target) {
     return function(e) {
       e.stopPropagation();
       document.addEventListener('mousemove', adjust, false);
-      _chart.adjustStart = getEventX(e);
-      _chart.adjustCurrent = _chart[target];
-      _chart.adjustTarget = target;
+      chartOptions.adjustStart = getEventX(e);
+      chartOptions.adjustCurrent = chartOptions[target];
+      chartOptions.adjustTarget = target;
     };
   }
 
   function adjust(e) {
-    const delta = (getEventX(e) - _chart.adjustStart) / CHART_WIDTH;
-    _chart[_chart.adjustTarget] = limit(_chart.adjustCurrent + delta, 0, 1);
+    const delta = (getEventX(e) - chartOptions.adjustStart) / CHART_WIDTH;
+    chartOptions[chartOptions.adjustTarget] = limit(chartOptions.adjustCurrent + delta, 0, 1);
     redraw(Math.sign(delta));
   }
 
   function startMove(e) {
     e.stopPropagation();
     document.addEventListener('mousemove', move, false);
-    _chart.adjustStart = getEventX(e);
-    _chart.adjustCurrent = [_chart.start, _chart.end];
+    chartOptions.adjustStart = getEventX(e);
+    chartOptions.adjustCurrent = [chartOptions.start, chartOptions.end];
   }
 
   function move(e) {
-    const delta = (getEventX(e) - _chart.adjustStart) / CHART_WIDTH;
-    const start = _chart.adjustCurrent[0] + delta;
-    const end = _chart.adjustCurrent[1] + delta;
+    const delta = (getEventX(e) - chartOptions.adjustStart) / CHART_WIDTH;
+    const start = chartOptions.adjustCurrent[0] + delta;
+    const end = chartOptions.adjustCurrent[1] + delta;
     if (start < 0 || end > 1) {
       return;
     }
-    _chart.start = limit(start, 0, 1);
-    _chart.end = limit(end, 0, 1);
+    chartOptions.start = limit(start, 0, 1);
+    chartOptions.end = limit(end, 0, 1);
     redraw(Math.sign(delta));
   }
 
-  document.addEventListener('mouseup', function() {
-    document.removeEventListener('mousemove', adjust, false);
-    document.removeEventListener('mousemove', move, false);
-  });
-
   function toggleSwitch(key) {
     return function() {
-      const line = _chart.y[key];
+      const line = chartOptions.y[key];
       line.active = !line.active;
       redrawLines();
     };
@@ -152,22 +152,28 @@ function createChart(chartData) {
 
   function redraw(direction) {
     requestAnimationFrame(function() {
-      chartRangeEl.style.left = `${_chart.start * 100}%`;
-      chartRangeEl.style.right = `${(1 - _chart.end) * 100}%`;
+      chartOptions.rangeEl.style.left = `${chartOptions.start * 100}%`;
+      chartOptions.rangeEl.style.right = `${(1 - chartOptions.end) * 100}%`;
     });
   }
 
   function redrawLines() {
-    Object.values(_chart.y).forEach(line => {
+    Object.values(chartOptions.y).forEach(line => {
       toggleClass(line.switcher, line.active, 'active');
       toggleClass(line.path, line.active, 'active');
     });
   }
 
+  document.addEventListener('mouseup', function() {
+    document.removeEventListener('mousemove', adjust, false);
+    document.removeEventListener('mousemove', move, false);
+  });
+
   redraw();
   redrawLines();
 
-  return _chart;
+  chartEl.$options = chartOptions
+  return chartEl;
 }
 
 /* UTILS */
@@ -176,7 +182,7 @@ function getByFirst(array, key) {
   return array.find(item => item[0] === key);
 }
 
-function create(t, { a, d, s, l } = {}, h) {
+function create(t, { s, l, a, r, d } = {}, h) {
   const [_t, ...c] = t.split('.');
   // create element by tagName
   const e =
@@ -215,6 +221,10 @@ function create(t, { a, d, s, l } = {}, h) {
   if (h) {
     h.forEach(i => (i instanceof Element ? e.appendChild(i) : e.appendChild(create(...i))));
   }
+  // bind rel
+  if (r) {
+    r(e);
+  }
   return e;
 }
 
@@ -234,6 +244,13 @@ function limit(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function bindRel(target, key, el) {
+  if (!el) {
+    return bindRel.bind(this, target, key);
+  }
+  target[key] = el;
+}
+
 /* PERFORMANCE TESTING */
 
 function ctt(fn, msg, count = 1) {
@@ -243,3 +260,11 @@ function ctt(fn, msg, count = 1) {
   }
   console.timeEnd(msg);
 }
+
+/* USERCODE */
+
+const app = document.getElementById('chart-app');
+const chart0 = createChart(chart_data[0]);
+console.log(chart0.$options);
+app.appendChild(chart0);
+// chart_data.forEach(element => app.appendChild(createChart(element)));
