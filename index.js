@@ -44,20 +44,22 @@ function createChart({ columns, types, names, colors }) {
   const maxY = Math.max(...allY);
 
   const chartEl = create('section.chart', {}, [
-    ['div.chart__zoom', {}, [
+    [
+      'div.chart__zoom',
+      {},
       [
-        'svg',
-        {
-          a: {
-            viewBox: `0 0 ${chartOptions.x.length - 1} ${maxY}`,
-            preserveAspectRatio: 'none',
-          },
-        },
         [
-          ['use', {a:{'xlink:href': '#chart-1'}}]
-        ]
+          'svg',
+          {
+            a: {
+              viewBox: `0 0 ${chartOptions.x.length - 1} ${maxY}`,
+              preserveAspectRatio: 'none',
+            },
+          },
+          [['use', { a: { 'xlink:href': '#chart-1' } }]],
+        ],
       ],
-    ]],
+    ],
     [
       'div.chart__preview',
       {},
@@ -71,8 +73,8 @@ function createChart({ columns, types, names, colors }) {
             },
           },
           [
-            ['symbol.chart__symbol', {a: {id: 'chart-1'}}, chartOptionsY.map(createPath)],
-            ['use', {a:{'xlink:href': '#chart-1'}}]
+            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, chartOptionsY.map(createPath)],
+            ['use', { a: { 'xlink:href': '#chart-1' } }],
           ],
         ],
         [
@@ -95,7 +97,7 @@ function createChart({ columns, types, names, colors }) {
         stroke: color,
         fill: 'none',
         'vector-effect': 'non-scaling-stroke',
-        d: data.reduce((d, y, x) => d+= (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`, ''),
+        d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
       },
       r: bindRel(chartOptions.y[key], 'path'),
     });
@@ -142,11 +144,12 @@ function createChart({ columns, types, names, colors }) {
     const delta = (getEventX(e) - chartOptions.adjustStart) / CHART_WIDTH;
     const start = chartOptions.adjustCurrent[0] + delta;
     const end = chartOptions.adjustCurrent[1] + delta;
-    if (start < 0 || end > 1) {
-      return;
+    if (end <= 1) {
+      chartOptions.start = limit(start, 0, 1);
     }
-    chartOptions.start = limit(start, 0, 1);
-    chartOptions.end = limit(end, 0, 1);
+    if (start >= 0) {
+      chartOptions.end = limit(end, 0, 1);
+    }
     redraw(Math.sign(delta));
   }
 
@@ -180,7 +183,7 @@ function createChart({ columns, types, names, colors }) {
   redraw();
   redrawLines();
 
-  chartEl.$chart = chartOptions
+  chartEl.$chart = chartOptions;
   return chartEl;
 }
 
@@ -205,7 +208,7 @@ function create(t, { s, l, a, r, d } = {}, h) {
   if (a) {
     for (const k in a) {
       if (k === 'xlink:href') {
-        e.setAttributeNS('http://www.w3.org/1999/xlink', k, a[k])
+        e.setAttributeNS('http://www.w3.org/1999/xlink', k, a[k]);
       } else {
         e.setAttribute(k, a[k]);
       }
@@ -285,4 +288,3 @@ app.appendChild(chart0);
 //   console.timeEnd('creating');
 //   app.appendChild(chart);
 // });
-
