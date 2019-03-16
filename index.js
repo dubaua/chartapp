@@ -44,6 +44,20 @@ function createChart({ columns, types, names, colors }) {
   const maxY = Math.max(...allY);
 
   const chartEl = create('section.chart', {}, [
+    ['div.chart__zoom', {}, [
+      [
+        'svg',
+        {
+          a: {
+            viewBox: `0 0 ${chartOptions.x.length - 1} ${maxY}`,
+            preserveAspectRatio: 'none',
+          },
+        },
+        [
+          ['use', {a:{'xlink:href': '#chart-1'}}]
+        ]
+      ],
+    ]],
     [
       'div.chart__preview',
       {},
@@ -56,7 +70,10 @@ function createChart({ columns, types, names, colors }) {
               preserveAspectRatio: 'none',
             },
           },
-          chartOptionsY.map(createPath),
+          [
+            ['symbol.chart__symbol', {a: {id: 'chart-1'}}, chartOptionsY.map(createPath)],
+            ['use', {a:{'xlink:href': '#chart-1'}}]
+          ],
         ],
         [
           'div.chart__range',
@@ -177,7 +194,7 @@ function create(t, { s, l, a, r, d } = {}, h) {
   const [_t, ...c] = t.split('.');
   // create element by tagName
   const e =
-    ['svg', 'path'].indexOf(_t) > -1
+    ['svg', 'path', 'use', 'symbol'].indexOf(_t) > -1
       ? document.createElementNS('http://www.w3.org/2000/svg', _t)
       : document.createElement(_t);
   // add classes
@@ -187,7 +204,11 @@ function create(t, { s, l, a, r, d } = {}, h) {
   // set attributes by key
   if (a) {
     for (const k in a) {
-      e.setAttribute(k, a[k]);
+      if (k === 'xlink:href') {
+        e.setAttributeNS('http://www.w3.org/1999/xlink', k, a[k])
+      } else {
+        e.setAttribute(k, a[k]);
+      }
     }
   }
   // assign dom props
@@ -264,3 +285,4 @@ app.appendChild(chart0);
 //   console.timeEnd('creating');
 //   app.appendChild(chart);
 // });
+
