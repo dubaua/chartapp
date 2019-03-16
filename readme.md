@@ -2,9 +2,11 @@
 
 - [ ] ~~chart can be template~~
 - [ ] ~~switch can be template~~
+- [x] move
+- [ ] check chart width with chart ragne width
 - [ ] themes
 - [ ] zoom
-- [ ] move
+- [ ] deal with symbol id
 - [ ] path animations
 - [ ] legends
 - [ ] legends animation
