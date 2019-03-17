@@ -2,7 +2,7 @@
 const MAX_ZOOM = 0.2;
 
 function createChart({ columns, types, names, colors }) {
-  let chartOptions = {
+  let $ = {
     x: [],
     y: [],
     start: 1 - MAX_ZOOM,
@@ -15,10 +15,10 @@ function createChart({ columns, types, names, colors }) {
   for (const key in types) {
     switch (types[key]) {
       case 'x':
-        chartOptions.x = getByFirst(columns, key).slice(1);
+        $.x = getByFirst(columns, key).slice(1);
         break;
       case 'line':
-        chartOptions.y.push({
+        $.y.push({
           data: getByFirst(columns, key).slice(1),
           color: colors[key],
           name: names[key],
@@ -28,7 +28,7 @@ function createChart({ columns, types, names, colors }) {
     }
   }
 
-  const maxY = Math.max(...[].concat(...chartOptions.y.map(line => line.data)));
+  const maxY = Math.max(...[].concat(...$.y.map(line => line.data)));
 
   // create DOM with hyperscript
   const chartEl = create('section.chart', {}, [
@@ -40,7 +40,7 @@ function createChart({ columns, types, names, colors }) {
           'svg',
           {
             a: {
-              viewBox: `0 0 ${chartOptions.x.length - 1} ${maxY}`,
+              viewBox: `0 0 ${$.x.length - 1} ${maxY}`,
               preserveAspectRatio: 'none',
             },
           },
@@ -50,24 +50,24 @@ function createChart({ columns, types, names, colors }) {
     ],
     [
       'div.chart__preview',
-      { r: bindRel(chartOptions, 'previewEl') },
+      { r: bindRel($, 'previewEl') },
       [
         [
           'svg',
           {
             a: {
-              viewBox: `0 0 ${chartOptions.x.length - 1} ${maxY}`,
+              viewBox: `0 0 ${$.x.length - 1} ${maxY}`,
               preserveAspectRatio: 'none',
             },
           },
           [
-            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, chartOptions.y.map(createPath)],
+            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, $.y.map(createPath)],
             ['use', { a: { 'xlink:href': '#chart-1' } }],
           ],
         ],
         [
           'div.chart__range',
-          { r: bindRel(chartOptions, 'rangeEl') },
+          { r: bindRel($, 'rangeEl') },
           [
             ['div.chart__adjust', { l: { mousedown: startAdjust('start') } }],
             ['div.chart__handle', { l: { mousedown: startMove } }],
@@ -76,7 +76,7 @@ function createChart({ columns, types, names, colors }) {
         ],
       ],
     ],
-    ['div.chart__controls', {}, chartOptions.y.map(createSwitcher)],
+    ['div.chart__controls', {}, $.y.map(createSwitcher)],
   ]);
 
   function createPath({ data, color }, i) {
@@ -87,7 +87,7 @@ function createChart({ columns, types, names, colors }) {
         'vector-effect': 'non-scaling-stroke',
         d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
       },
-      r: bindRel(chartOptions.y[i], 'path'),
+      r: bindRel($.y[i], 'path'),
     });
   }
 
@@ -96,7 +96,7 @@ function createChart({ columns, types, names, colors }) {
       'button.chart__switcher.switcher',
       {
         l: { click: toggleSwitch(i) },
-        r: bindRel(chartOptions.y[i], 'switcher'),
+        r: bindRel($.y[i], 'switcher'),
       },
       [
         ['span.switcher__checkbox', { s: { backgroundColor: color } }],
@@ -109,41 +109,41 @@ function createChart({ columns, types, names, colors }) {
     return function(e) {
       e.stopPropagation();
       document.addEventListener('mousemove', adjust, false);
-      chartOptions.adjustStart = getEventX(e);
-      chartOptions.adjustCurrent = chartOptions[target];
-      chartOptions.adjustTarget = target;
+      $.adjustStart = getEventX(e);
+      $.adjustCurrent = $[target];
+      $.adjustTarget = target;
     };
   }
 
   function adjust(e) {
-    const delta = (getEventX(e) - chartOptions.adjustStart) / chartOptions.previewEl.offsetWidth;
-    chartOptions[chartOptions.adjustTarget] = limit(chartOptions.adjustCurrent + delta, 0, 1);
+    const delta = (getEventX(e) - $.adjustStart) / $.previewEl.offsetWidth;
+    $[$.adjustTarget] = limit($.adjustCurrent + delta, 0, 1);
     redraw(Math.sign(delta));
   }
 
   function startMove(e) {
     e.stopPropagation();
     document.addEventListener('mousemove', move, false);
-    chartOptions.adjustStart = getEventX(e);
-    chartOptions.adjustCurrent = [chartOptions.start, chartOptions.end];
+    $.adjustStart = getEventX(e);
+    $.adjustCurrent = [$.start, $.end];
   }
 
   function move(e) {
-    const delta = (getEventX(e) - chartOptions.adjustStart) / chartOptions.previewEl.offsetWidth;
-    const start = chartOptions.adjustCurrent[0] + delta;
-    const end = chartOptions.adjustCurrent[1] + delta;
+    const delta = (getEventX(e) - $.adjustStart) / $.previewEl.offsetWidth;
+    const start = $.adjustCurrent[0] + delta;
+    const end = $.adjustCurrent[1] + delta;
     if (end <= 1) {
-      chartOptions.start = limit(start, 0, 1);
+      $.start = limit(start, 0, 1);
     }
     if (start >= 0) {
-      chartOptions.end = limit(end, 0, 1);
+      $.end = limit(end, 0, 1);
     }
     redraw(Math.sign(delta));
   }
 
   function toggleSwitch(i) {
     return function() {
-      const line = chartOptions.y[i];
+      const line = $.y[i];
       line.active = !line.active;
       redrawLines();
     };
@@ -151,13 +151,13 @@ function createChart({ columns, types, names, colors }) {
 
   function redraw(direction) {
     requestAnimationFrame(function() {
-      chartOptions.rangeEl.style.left = `${chartOptions.start * 100}%`;
-      chartOptions.rangeEl.style.right = `${(1 - chartOptions.end) * 100}%`;
+      $.rangeEl.style.left = `${$.start * 100}%`;
+      $.rangeEl.style.right = `${(1 - $.end) * 100}%`;
     });
   }
 
   function redrawLines() {
-    Object.values(chartOptions.y).forEach(line => {
+    $.y.forEach(line => {
       toggleClass(line.switcher, line.active, 'active');
       toggleClass(line.path, line.active, 'active');
     });
@@ -171,7 +171,7 @@ function createChart({ columns, types, names, colors }) {
   redraw();
   redrawLines();
 
-  chartEl.$chart = chartOptions;
+  chartEl.$chart = $;
   return chartEl;
 }
 
