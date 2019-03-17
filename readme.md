@@ -3,7 +3,8 @@
 - [ ] ~~switch can be template~~
 - [x] move
 - [x] check chart width with chart ragne width
-- [ ] themes
+- [ ] ~~themes~~
+- [x] bind listeners once, set flag is adjusting
 - [ ] zoom
 - [ ] deal with symbol id
 - [ ] path animations
