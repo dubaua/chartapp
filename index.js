@@ -28,8 +28,7 @@ function createChart({ columns, types, names, colors }) {
     }
   }
 
-  const allY = [].concat(...chartOptions.y.map(line => line.data));
-  const maxY = Math.max(...allY);
+  const maxY = Math.max(...[].concat(...chartOptions.y.map(line => line.data)));
 
   // create DOM with hyperscript
   const chartEl = create('section.chart', {}, [
