@@ -4,7 +4,7 @@ const MAX_ZOOM = 0.2;
 function createChart({ columns, types, names, colors }) {
   let chartOptions = {
     x: [],
-    y: {},
+    y: [],
     start: 1 - MAX_ZOOM,
     end: 1,
     adjustStart: 0,
@@ -13,27 +13,22 @@ function createChart({ columns, types, names, colors }) {
   };
 
   for (const key in types) {
-    if (types.hasOwnProperty(key)) {
-      const type = types[key];
-      switch (type) {
-        case 'x':
-          chartOptions.x = getByFirst(columns, key).slice(1);
-          break;
-        case 'line':
-          chartOptions.y[key] = {
-            key,
-            data: getByFirst(columns, key).slice(1),
-            color: colors[key],
-            name: names[key],
-            active: true,
-          };
-          break;
-      }
+    switch (types[key]) {
+      case 'x':
+        chartOptions.x = getByFirst(columns, key).slice(1);
+        break;
+      case 'line':
+        chartOptions.y.push({
+          data: getByFirst(columns, key).slice(1),
+          color: colors[key],
+          name: names[key],
+          active: true,
+        });
+        break;
     }
   }
 
-  const chartOptionsY = Object.values(chartOptions.y);
-  const allY = [].concat(...chartOptionsY.map(line => line.data));
+  const allY = [].concat(...chartOptions.y.map(line => line.data));
   const maxY = Math.max(...allY);
 
   // create DOM with hyperscript
@@ -56,7 +51,7 @@ function createChart({ columns, types, names, colors }) {
     ],
     [
       'div.chart__preview',
-      {r: bindRel(chartOptions, 'previewEl')},
+      { r: bindRel(chartOptions, 'previewEl') },
       [
         [
           'svg',
@@ -67,7 +62,7 @@ function createChart({ columns, types, names, colors }) {
             },
           },
           [
-            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, chartOptionsY.map(createPath)],
+            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, chartOptions.y.map(createPath)],
             ['use', { a: { 'xlink:href': '#chart-1' } }],
           ],
         ],
@@ -82,10 +77,10 @@ function createChart({ columns, types, names, colors }) {
         ],
       ],
     ],
-    ['div.chart__controls', {}, chartOptionsY.map(createSwitcher)],
+    ['div.chart__controls', {}, chartOptions.y.map(createSwitcher)],
   ]);
 
-  function createPath({ data, key, color }) {
+  function createPath({ data, color }, i) {
     return create('path.fade-out', {
       a: {
         stroke: color,
@@ -93,16 +88,16 @@ function createChart({ columns, types, names, colors }) {
         'vector-effect': 'non-scaling-stroke',
         d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
       },
-      r: bindRel(chartOptions.y[key], 'path'),
+      r: bindRel(chartOptions.y[i], 'path'),
     });
   }
 
-  function createSwitcher({ name, key, color }) {
+  function createSwitcher({ name, color }, i) {
     return create(
       'button.chart__switcher.switcher',
       {
-        l: { click: toggleSwitch(key) },
-        r: bindRel(chartOptions.y[key], 'switcher'),
+        l: { click: toggleSwitch(i) },
+        r: bindRel(chartOptions.y[i], 'switcher'),
       },
       [
         ['span.switcher__checkbox', { s: { backgroundColor: color } }],
@@ -147,9 +142,9 @@ function createChart({ columns, types, names, colors }) {
     redraw(Math.sign(delta));
   }
 
-  function toggleSwitch(key) {
+  function toggleSwitch(i) {
     return function() {
-      const line = chartOptions.y[key];
+      const line = chartOptions.y[i];
       line.active = !line.active;
       redrawLines();
     };
