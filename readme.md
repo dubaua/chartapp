@@ -1,12 +1,13 @@
 - [ ] ~~Check shadow DOM and templates~~
-
 - [ ] ~~chart can be template~~
 - [ ] ~~switch can be template~~
 - [x] move
-- [ ] check chart width with chart ragne width
+- [x] check chart width with chart ragne width
 - [ ] themes
 - [ ] zoom
 - [ ] deal with symbol id
 - [ ] path animations
 - [ ] legends
 - [ ] legends animation
+- [ ] optimize css
+- [ ] minimize js

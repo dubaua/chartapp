@@ -1,16 +1,11 @@
 /* CONSTANTS */
-
-const MS_IN_DAY = 1000 * 60 * 60 * 24;
-const CHART_MARGIN = 18;
-const CHART_WIDTH = window.innerWidth - CHART_MARGIN * 2;
-const ZOOM_CHART_HEIGHT = 100;
-const DAYS_TO_SHOW = 28;
+const MAX_ZOOM = 0.2;
 
 function createChart({ columns, types, names, colors }) {
   let chartOptions = {
     x: [],
     y: {},
-    start: 0,
+    start: 1 - MAX_ZOOM,
     end: 1,
     adjustStart: 0,
     adjustCurrent: 0,
@@ -37,12 +32,11 @@ function createChart({ columns, types, names, colors }) {
     }
   }
 
-  chartOptions.start = 1 - DAYS_TO_SHOW / chartOptions.x.length;
-
   const chartOptionsY = Object.values(chartOptions.y);
   const allY = [].concat(...chartOptionsY.map(line => line.data));
   const maxY = Math.max(...allY);
 
+  // create DOM with hyperscript
   const chartEl = create('section.chart', {}, [
     [
       'div.chart__zoom',
@@ -62,7 +56,7 @@ function createChart({ columns, types, names, colors }) {
     ],
     [
       'div.chart__preview',
-      {},
+      {r: bindRel(chartOptions, 'previewEl')},
       [
         [
           'svg',
@@ -128,7 +122,7 @@ function createChart({ columns, types, names, colors }) {
   }
 
   function adjust(e) {
-    const delta = (getEventX(e) - chartOptions.adjustStart) / CHART_WIDTH;
+    const delta = (getEventX(e) - chartOptions.adjustStart) / chartOptions.previewEl.offsetWidth;
     chartOptions[chartOptions.adjustTarget] = limit(chartOptions.adjustCurrent + delta, 0, 1);
     redraw(Math.sign(delta));
   }
@@ -141,7 +135,7 @@ function createChart({ columns, types, names, colors }) {
   }
 
   function move(e) {
-    const delta = (getEventX(e) - chartOptions.adjustStart) / CHART_WIDTH;
+    const delta = (getEventX(e) - chartOptions.adjustStart) / chartOptions.previewEl.offsetWidth;
     const start = chartOptions.adjustCurrent[0] + delta;
     const end = chartOptions.adjustCurrent[1] + delta;
     if (end <= 1) {
