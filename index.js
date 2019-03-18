@@ -1,5 +1,6 @@
 /* CONSTANTS */
 const MAX_ZOOM = 0.2;
+let currentIndex = 1;
 
 function createChart({ columns, types, names, colors }) {
   let $ = {
@@ -19,6 +20,7 @@ function createChart({ columns, types, names, colors }) {
     switch (types[key]) {
       case 'x':
         $.x = getByFirst(columns, key).slice(1);
+        $.xCount = $.x.length - 1;
         break;
       case 'line':
         $.y.push({
@@ -43,14 +45,14 @@ function createChart({ columns, types, names, colors }) {
           'svg',
           {
             a: {
-              viewBox: `0 0 ${$.x.length - 1} ${$.maxY}`,
+              viewBox: `0 0 ${$.xCount} ${$.maxY}`,
               preserveAspectRatio: 'none',
             },
-            r: bindRel($, 'zoomSvg')
+            r: bindRel($, 'zoomSvg'),
           },
           [
-            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, $.y.map(createPath)],
-            ['use', { a: { 'xlink:href': '#chart-1' }, r: bindRel($, 'zoomUse') }],
+            ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, $.y.map(createPath)],
+            ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindRel($, 'zoomUse') }],
           ],
         ],
       ],
@@ -63,11 +65,11 @@ function createChart({ columns, types, names, colors }) {
           'svg',
           {
             a: {
-              viewBox: `0 0 ${$.x.length - 1} ${$.maxY}`,
+              viewBox: `0 0 ${$.xCount} ${$.maxY}`,
               preserveAspectRatio: 'none',
             },
           },
-          [['use', { a: { 'xlink:href': '#chart-1' } }]],
+          [['use', { a: { 'xlink:href': `#chart-${currentIndex}` } }]],
         ],
         [
           'div.chart__range',
@@ -151,8 +153,8 @@ function createChart({ columns, types, names, colors }) {
     requestAnimationFrame(function() {
       $.rangeEl.style.left = `${$.start * 100}%`;
       $.rangeEl.style.right = `${(1 - $.end) * 100}%`;
-      $.zoomSvg.setAttribute('viewBox', `0 0 ${($.x.length - 1) * ($.end - $.start)} ${$.maxY}`);
-      $.zoomUse.setAttribute('x', - ($.x.length - 1) * $.start);
+      $.zoomSvg.setAttribute('viewBox', `0 0 ${($.xCount) * ($.end - $.start)} ${$.maxY}`);
+      $.zoomUse.setAttribute('x', -($.xCount) * $.start);
     });
   }
 
@@ -170,6 +172,8 @@ function createChart({ columns, types, names, colors }) {
 
   redraw();
   redrawLines();
+
+  currentIndex++;
 
   chartEl.$chart = $;
   return chartEl;
