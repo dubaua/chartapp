@@ -12,7 +12,7 @@ function createChart({ columns, types, names, colors }) {
     isAdjusting: false,
     eventType: '',
     adjustStart: 0,
-    adjustCurrent: [0, 0],
+    adjustCurrent: [1 - MAX_ZOOM, 1],
     chartWidth: 0,
   };
 
@@ -133,7 +133,7 @@ function createChart({ columns, types, names, colors }) {
       if ($.eventType === 'end' || ($.eventType === 'both' && start >= 0)) {
         $.end = limit(end, 0, 1);
       }
-      redraw(Math.sign(delta));
+      draw(Math.sign(delta));
     }
   }
 
@@ -145,33 +145,42 @@ function createChart({ columns, types, names, colors }) {
     return function() {
       const line = $.y[i];
       line.active = !line.active;
-      redrawLines();
+      draw(0);
     };
   }
 
-  function redraw(direction) {
-    requestAnimationFrame(function() {
-      $.rangeEl.style.left = `${$.start * 100}%`;
-      $.rangeEl.style.right = `${(1 - $.end) * 100}%`;
-      $.zoomSvg.setAttribute('viewBox', `0 0 ${($.xCount) * ($.end - $.start)} ${$.maxY}`);
-      $.zoomUse.setAttribute('x', -($.xCount) * $.start);
+  function draw(direction) {
+    $.y.forEach(({ switcher, active, path }) => {
+      toggleClass(switcher, active, 'active');
+      toggleClass(path, active, 'active');
     });
+    $.rangeEl.style.left = `${$.start * 100}%`;
+    $.rangeEl.style.right = `${(1 - $.end) * 100}%`;
+    $.zoomSvg.setAttribute('viewBox', `0 0 ${$.xCount * ($.end - $.start)} ${$.maxY}`);
+    $.zoomUse.setAttribute('x', -$.xCount * $.start);
+    const selected = [].concat(
+      ...$.y
+        .filter(line => line.active)
+        .map(line => line.data.slice(Math.floor($.xCount * $.start), Math.floor($.xCount * $.end)))
+    );
+    const localMax = Math.max(...selected);
+    $.zoomUse.style.transform = `scale(1, ${$.maxY / localMax})`;
   }
 
-  function redrawLines() {
-    $.y.forEach(line => {
-      toggleClass(line.switcher, line.active, 'active');
-      toggleClass(line.path, line.active, 'active');
-    });
-  }
+  // $.destroy = function() {
+  //   document.removeEventListener('mousemove', adjust, false);
+  //   document.removeEventListener('touchmove', adjust, false);
+  //   document.removeEventListener('mouseup', afterAdjust, false);
+  //   document.removeEventListener('touchend', afterAdjust, false);
+  //   chartEl.remove();
+  // }
 
   document.addEventListener('mousemove', adjust, false);
   document.addEventListener('touchmove', adjust, false);
   document.addEventListener('mouseup', afterAdjust, false);
   document.addEventListener('touchend', afterAdjust, false);
 
-  redraw();
-  redrawLines();
+  draw(0);
 
   currentIndex++;
 
@@ -186,6 +195,7 @@ function getByFirst(array, key) {
 }
 
 function create(t, { s, l, a, r, d } = {}, h) {
+  // extract classlist from tag name
   const [_t, ...c] = t.split('.');
   // create element by tagName
   const e =

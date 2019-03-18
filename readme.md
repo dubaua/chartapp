@@ -7,8 +7,11 @@
 - [x] bind listeners once, set flag is adjusting
 - [x] zoom
 - [x] deal with symbol id
+- [x] scale zoom Y to fit
 - [ ] path animations
 - [ ] legends
 - [ ] legends animation
+- [ ] fetch data asynchronously
+- [ ] optimize redrawing checking is delta changed
 - [ ] optimize css
 - [ ] minimize js

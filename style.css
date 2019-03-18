@@ -12,12 +12,17 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
   width: 100%;
-  height: 358px;
+  height: 462px; /* 77 */
   overflow: visible;
 }
 
 .chart__zoom symbol {
   overflow: visible;
+}
+
+.chart__zoom use {
+  transition: transform 0.2s cubic-bezier(0.47, 0, 0.75, 0.72);
+  transform-origin: center bottom;
 }
 
 .chart__preview {
