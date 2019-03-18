@@ -9,7 +9,8 @@ body {
 
 .chart__lens {
   margin: 0 -18px;
-  padding: 0 18px;
+  padding: 1.5px 18px;
+  line-height: 0;
   overflow: hidden;
 }
 
