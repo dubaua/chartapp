@@ -13,6 +13,7 @@
 - [ ] lens check edge maximum?
 - [x] path animations
 - [x] restrain max zoom
+- [ ] show detailed
 - [ ] legends
 - [ ] legends animation
 - [ ] fetch data asynchronously
@@ -23,3 +24,10 @@
 - [x] hide overflow y
 - [ ] try variables
 - [ ] optimize css
+
+function showDetailed(e) {
+  // grab position 0..1 from eventX
+  // create line over svg, create crossing rounds for each line
+  // show lens line over svg, show rounds, grab data
+  // show data
+}

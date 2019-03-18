@@ -71,11 +71,7 @@ function createChart({ columns, types, names, colors }) {
               viewBox: `0 0 ${$.xCount} ${$.maxY}`,
               preserveAspectRatio: 'none',
             },
-            r: bindRel($, 'lensSvg'),
-            l: {
-              mousemove: showDetailed,
-              touchmove: showDetailed,
-            },
+            r: bindRel($, 'lensSvg')
           },
           [
             ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, $.y.map(createPath)],
@@ -192,13 +188,6 @@ function createChart({ columns, types, names, colors }) {
       line.active = !line.active;
       draw(0);
     };
-  }
-
-  function showDetailed(e) {
-    // grab position 0..1 from eventX
-    // create line over svg, create crossing rounds for each line
-    // show lens line over svg, show rounds, grab data
-    // show data
   }
 
   function draw(direction) {
