@@ -8,10 +8,17 @@
 - [x] zoom
 - [x] deal with symbol id
 - [x] scale zoom Y to fit
-- [ ] path animations
+- [x] preview shows from min to max
+- [x] lens shows from 0 to max
+- [ ] lens check edge maximum?
+- [x] path animations
 - [ ] legends
 - [ ] legends animation
 - [ ] fetch data asynchronously
 - [ ] optimize redrawing checking is delta changed
-- [ ] optimize css
 - [ ] minimize js
+
+# CSS
+- [x] hide overflow y
+- [ ] try variables
+- [ ] optimize css

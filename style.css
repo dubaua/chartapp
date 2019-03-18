@@ -7,22 +7,31 @@ body {
   margin: 18px;
 }
 
-.chart__zoom svg {
-  stroke-width: 3;
+.chart__lens {
+  margin: 0 -18px;
+  padding: 0 18px;
+  overflow: hidden;
+}
+
+.chart svg {
+  width: 100%;
+  overflow: visible;
   stroke-linecap: round;
   stroke-linejoin: round;
-  width: 100%;
-  height: 462px; /* 77 */
-  overflow: visible;
 }
 
-.chart__zoom symbol {
-  overflow: visible;
-}
-
-.chart__zoom use {
-  transition: transform 0.2s cubic-bezier(0.47, 0, 0.75, 0.72);
+.chart use {
+  transition: transform 0.1s cubic-bezier(0.47, 0, 0.75, 0.72);
   transform-origin: center bottom;
+}
+
+.chart__lens svg {
+  stroke-width: 3;
+  height: 462px; /* 77 */
+}
+
+.chart__lens symbol {
+  overflow: visible;
 }
 
 .chart__preview {
@@ -34,9 +43,6 @@ body {
 
 .chart__preview svg {
   stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  width: 100%;
   height: 50px;
 }
 
@@ -59,7 +65,7 @@ body {
 }
 
 .chart__range:hover .chart__handle {
-  border-color: rgba(9, 114, 188, 0.21);
+  border-color: rgba(9, 114, 188, 0.11);
 }
 
 .chart__adjust {
@@ -71,7 +77,7 @@ body {
 
 .chart__range:hover .chart__adjust,
 .chart__adjust:hover {
-  background-color: rgba(9, 114, 188, 0.21);
+  background-color: rgba(9, 114, 188, 0.11);
 }
 
 .chart__controls {
@@ -120,7 +126,7 @@ body {
   left: 2px;
   display: block;
   border-radius: 50%;
-  transition: transform 0.2s cubic-bezier(0.62, 0, 1, 1);
+  transition: transform 0.1s cubic-bezier(0.47, 0, 0.75, 0.72);
   transform: scale(1);
   background: white;
 }
@@ -136,22 +142,9 @@ body {
 
 .fade-out {
   opacity: 0;
-  transition: opacity 0.2s cubic-bezier(0.47, 0, 0.75, 0.72);
+  transition: opacity 0.1s cubic-bezier(0.47, 0, 0.75, 0.72);
 }
 
 .fade-out.active {
-  opacity: 1;
-}
-
-.fade-up {
-  transform: translate(0, -10%);
-  opacity: 0;
-  transition-property: transform opacity;
-  transition-duration: 0.2s;
-  transition-timing-function: cubic-bezier(0.47, 0, 0.75, 0.72);
-}
-
-.fade-up.active {
-  transform: translate(0, 0);
   opacity: 1;
 }

@@ -7,6 +7,7 @@ function createChart({ columns, types, names, colors }) {
     x: [],
     y: [],
     maxY: 0,
+    minY: 0,
     start: 1 - MAX_ZOOM,
     end: 1,
     isAdjusting: false,
@@ -33,12 +34,33 @@ function createChart({ columns, types, names, colors }) {
     }
   }
 
-  $.maxY = Math.max(...[].concat(...$.y.map(line => line.data)));
+  const allY = [].concat(...$.y.map(line => line.data));
+  $.maxY = Math.max(...allY);
+  $.minY = Math.min(...allY);
+
+  // reactive getters
+  $.activeYs = function() {
+    return $.y.filter(line => line.active);
+  };
+
+  $.selectedY = function() {
+    return [].concat(
+      ...$.activeYs().map(line => line.data.slice(Math.floor($.xCount * $.start), Math.floor($.xCount * $.end)))
+    );
+  };
+
+  $.maxActiveY = function() {
+    return Math.max(...[].concat(...$.activeYs().map(line => line.data)));
+  };
+
+  $.maxSelectedY = function() {
+    return Math.max(...$.selectedY());
+  };
 
   // create DOM with hyperscript
   const chartEl = create('section.chart', {}, [
     [
-      'div.chart__zoom',
+      'div.chart__lens',
       {},
       [
         [
@@ -48,11 +70,11 @@ function createChart({ columns, types, names, colors }) {
               viewBox: `0 0 ${$.xCount} ${$.maxY}`,
               preserveAspectRatio: 'none',
             },
-            r: bindRel($, 'zoomSvg'),
+            r: bindRel($, 'lensSvg'),
           },
           [
             ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, $.y.map(createPath)],
-            ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindRel($, 'zoomUse') }],
+            ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindRel($, 'lensUse') }],
           ],
         ],
       ],
@@ -65,11 +87,11 @@ function createChart({ columns, types, names, colors }) {
           'svg',
           {
             a: {
-              viewBox: `0 0 ${$.xCount} ${$.maxY}`,
+              viewBox: `0 0 ${$.xCount} ${$.maxY - $.minY}`,
               preserveAspectRatio: 'none',
             },
           },
-          [['use', { a: { 'xlink:href': `#chart-${currentIndex}` } }]],
+          [['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindRel($, 'previewUse') }]],
         ],
         [
           'div.chart__range',
@@ -154,17 +176,15 @@ function createChart({ columns, types, names, colors }) {
       toggleClass(switcher, active, 'active');
       toggleClass(path, active, 'active');
     });
+
     $.rangeEl.style.left = `${$.start * 100}%`;
     $.rangeEl.style.right = `${(1 - $.end) * 100}%`;
-    $.zoomSvg.setAttribute('viewBox', `0 0 ${$.xCount * ($.end - $.start)} ${$.maxY}`);
-    $.zoomUse.setAttribute('x', -$.xCount * $.start);
-    const selected = [].concat(
-      ...$.y
-        .filter(line => line.active)
-        .map(line => line.data.slice(Math.floor($.xCount * $.start), Math.floor($.xCount * $.end)))
-    );
-    const localMax = Math.max(...selected);
-    $.zoomUse.style.transform = `scale(1, ${$.maxY / localMax})`;
+
+    $.lensSvg.setAttribute('viewBox', `0 0 ${$.xCount * ($.end - $.start)} ${$.maxY}`);
+    $.lensUse.setAttribute('x', -$.xCount * $.start);
+    $.lensUse.style.transform = `scale(1, ${$.maxY / $.maxSelectedY()})`;
+
+    $.previewUse.style.transform = `scale(1, ${$.maxY / $.maxActiveY()})`;
   }
 
   // $.destroy = function() {
