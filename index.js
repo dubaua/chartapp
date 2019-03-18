@@ -71,9 +71,9 @@ function createChart({ columns, types, names, colors }) {
           'div.chart__range',
           { r: bindRel($, 'rangeEl') },
           [
-            ['div.chart__adjust', { l: { mousedown: beforeAdjust('start') } }],
-            ['div.chart__handle', { l: { mousedown: beforeAdjust('both') } }],
-            ['div.chart__adjust', { l: { mousedown: beforeAdjust('end') } }],
+            ['div.chart__adjust', { l: { mousedown: beforeAdjust('start'), touchstart: beforeAdjust('start') } }],
+            ['div.chart__handle', { l: { mousedown: beforeAdjust('both'), touchstart: beforeAdjust('both') } }],
+            ['div.chart__adjust', { l: { mousedown: beforeAdjust('end'), touchstart: beforeAdjust('end') } }],
           ],
         ],
       ],
@@ -160,7 +160,9 @@ function createChart({ columns, types, names, colors }) {
   }
 
   document.addEventListener('mousemove', adjust, false);
+  document.addEventListener('touchmove', adjust, false);
   document.addEventListener('mouseup', afterAdjust, false);
+  document.addEventListener('touchend', afterAdjust, false);
 
   redraw();
   redrawLines();
