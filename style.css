@@ -13,6 +13,11 @@ body {
   stroke-linejoin: round;
   width: 100%;
   height: 358px;
+  overflow: visible;
+}
+
+.chart__zoom symbol {
+  overflow: visible;
 }
 
 .chart__preview {
@@ -142,6 +147,6 @@ body {
 }
 
 .fade-up.active {
-  transform: translate(0,0);
+  transform: translate(0, 0);
   opacity: 1;
 }

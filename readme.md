@@ -3,9 +3,9 @@
 - [ ] ~~switch can be template~~
 - [x] move
 - [x] check chart width with chart ragne width
-- [ ] ~~themes~~
+- [ ] themes: handle chart colors with rgb function
 - [x] bind listeners once, set flag is adjusting
-- [ ] zoom
+- [x] zoom
 - [ ] deal with symbol id
 - [ ] path animations
 - [ ] legends

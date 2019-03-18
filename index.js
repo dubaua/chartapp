@@ -5,6 +5,7 @@ function createChart({ columns, types, names, colors }) {
   let $ = {
     x: [],
     y: [],
+    maxY: 0,
     start: 1 - MAX_ZOOM,
     end: 1,
     isAdjusting: false,
@@ -30,7 +31,7 @@ function createChart({ columns, types, names, colors }) {
     }
   }
 
-  const maxY = Math.max(...[].concat(...$.y.map(line => line.data)));
+  $.maxY = Math.max(...[].concat(...$.y.map(line => line.data)));
 
   // create DOM with hyperscript
   const chartEl = create('section.chart', {}, [
@@ -42,11 +43,15 @@ function createChart({ columns, types, names, colors }) {
           'svg',
           {
             a: {
-              viewBox: `0 0 ${$.x.length - 1} ${maxY}`,
+              viewBox: `0 0 ${$.x.length - 1} ${$.maxY}`,
               preserveAspectRatio: 'none',
             },
+            r: bindRel($, 'zoomSvg')
           },
-          [['use', { a: { 'xlink:href': '#chart-1' } }]],
+          [
+            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, $.y.map(createPath)],
+            ['use', { a: { 'xlink:href': '#chart-1' }, r: bindRel($, 'zoomUse') }],
+          ],
         ],
       ],
     ],
@@ -58,14 +63,11 @@ function createChart({ columns, types, names, colors }) {
           'svg',
           {
             a: {
-              viewBox: `0 0 ${$.x.length - 1} ${maxY}`,
+              viewBox: `0 0 ${$.x.length - 1} ${$.maxY}`,
               preserveAspectRatio: 'none',
             },
           },
-          [
-            ['symbol.chart__symbol', { a: { id: 'chart-1' } }, $.y.map(createPath)],
-            ['use', { a: { 'xlink:href': '#chart-1' } }],
-          ],
+          [['use', { a: { 'xlink:href': '#chart-1' } }]],
         ],
         [
           'div.chart__range',
@@ -87,7 +89,7 @@ function createChart({ columns, types, names, colors }) {
         stroke: color,
         fill: 'none',
         'vector-effect': 'non-scaling-stroke',
-        d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
+        d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${$.maxY - y}`), ''),
       },
       r: bindRel($.y[i], 'path'),
     });
@@ -149,6 +151,8 @@ function createChart({ columns, types, names, colors }) {
     requestAnimationFrame(function() {
       $.rangeEl.style.left = `${$.start * 100}%`;
       $.rangeEl.style.right = `${(1 - $.end) * 100}%`;
+      $.zoomSvg.setAttribute('viewBox', `0 0 ${($.x.length - 1) * ($.end - $.start)} ${$.maxY}`);
+      $.zoomUse.setAttribute('x', - ($.x.length - 1) * $.start);
     });
   }
 
