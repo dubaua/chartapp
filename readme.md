@@ -18,16 +18,10 @@
 - [ ] legends animation
 - [ ] fetch data asynchronously
 - [ ] optimize redrawing checking is delta changed
+- [ ] optimize redrawing with requestAnimationFrame
 - [ ] minimize js
 
 # CSS
 - [x] hide overflow y
 - [ ] try variables
 - [ ] optimize css
-
-function showDetailed(e) {
-  // grab position 0..1 from eventX
-  // create line over svg, create crossing rounds for each line
-  // show lens line over svg, show rounds, grab data
-  // show data
-}

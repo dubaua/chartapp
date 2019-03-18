@@ -62,7 +62,15 @@ function createChart({ columns, types, names, colors }) {
   const chartEl = create('section.chart', {}, [
     [
       'div.chart__lens',
-      {},
+      {
+        l: {
+          mouseover: setChartWidth,
+          touchstart: setChartWidth,
+          mousemove: showDetailed,
+          touchmove: showDetailed,
+        },
+        r: bindRel($, 'lensEl'),
+      },
       [
         [
           'svg',
@@ -71,11 +79,18 @@ function createChart({ columns, types, names, colors }) {
               viewBox: `0 0 ${$.xCount} ${$.maxY}`,
               preserveAspectRatio: 'none',
             },
-            r: bindRel($, 'lensSvg')
+            r: bindRel($, 'lensSvg'),
           },
           [
             ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, $.y.map(createPath)],
             ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindRel($, 'lensUse') }],
+            [
+              'path.chart__zoom',
+              {
+                a: { d: `M0 0L0 ${$.maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
+                r: bindRel($, 'lensZoom'),
+              },
+            ],
           ],
         ],
       ],
@@ -134,8 +149,11 @@ function createChart({ columns, types, names, colors }) {
     );
   }
 
+  // on create and resize
   function setChartWidth() {
     $.chartWidth = $.previewEl.offsetWidth;
+    $.chartOffsetX = $.previewEl.getBoundingClientRect().x;
+    console.log('here');
   }
 
   function beforeAdjust(type) {
@@ -188,6 +206,18 @@ function createChart({ columns, types, names, colors }) {
       line.active = !line.active;
       draw(0);
     };
+  }
+
+  function showDetailed(e) {
+    // set on dom inserted, reset on resize
+    // grab position 0..1 from eventX
+    const posX = Math.floor((getEventX(e) - $.chartOffsetX) / $.chartWidth * $.xCount);
+    console.log(posX);
+    // create line over svg, create crossing rounds for each line
+
+    // $.lensZoom.setAttribute('d', `M${x} 0L${x} ${$.maxY}`);
+    // show lens line over svg, show rounds, grab data
+    // show data
   }
 
   function draw(direction) {
@@ -322,7 +352,9 @@ function ctt(fn, msg, count = 1) {
 /* USERCODE */
 
 const app = document.getElementById('chart-app');
+console.time('creating');
 const chart0 = createChart(chart_data[0]);
+console.timeEnd('creating');
 console.log(chart0.$chart);
 app.appendChild(chart0);
 // chart_data.forEach(element => {
