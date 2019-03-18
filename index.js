@@ -11,6 +11,7 @@ function createChart({ columns, types, names, colors }) {
     eventType: '',
     adjustStart: 0,
     adjustCurrent: [0, 0],
+    chartWidth: 0,
   };
 
   for (const key in types) {
@@ -113,31 +114,27 @@ function createChart({ columns, types, names, colors }) {
       $.eventType = type;
       $.adjustCurrent = [$.start, $.end];
       $.adjustStart = getEventX(e);
-    }
+      $.chartWidth = $.previewEl.offsetWidth;
+    };
   }
 
   function adjust(e) {
-    if (!$.isAdjusting) {return};
-    const delta = (getEventX(e) - $.adjustStart) / $.previewEl.offsetWidth;
-    const start = $.adjustCurrent[0] + delta;
-    const end = $.adjustCurrent[1] + delta;
-    switch ($.eventType) {
-      case 'start':
+    if ($.isAdjusting) {
+      const delta = (getEventX(e) - $.adjustStart) / $.chartWidth;
+      const start = $.adjustCurrent[0] + delta;
+      const end = $.adjustCurrent[1] + delta;
+      if ($.eventType === 'start' || ($.eventType === 'both' && end <= 1)) {
         $.start = limit(start, 0, 1);
-        break;
-      case 'end':
+      }
+      if ($.eventType === 'end' || ($.eventType === 'both' && start >= 0)) {
         $.end = limit(end, 0, 1);
-        break;
-      case 'both':
-        if (end <= 1) {
-          $.start = limit(start, 0, 1);
-        }
-        if (start >= 0) {
-          $.end = limit(end, 0, 1);
-        }
-        break;
+      }
+      redraw(Math.sign(delta));
     }
-    redraw(Math.sign(delta));
+  }
+
+  function afterAdjust(e) {
+    $.isAdjusting = false;
   }
 
   function toggleSwitch(i) {
@@ -163,10 +160,7 @@ function createChart({ columns, types, names, colors }) {
   }
 
   document.addEventListener('mousemove', adjust, false);
-
-  document.addEventListener('mouseup', function() {
-    $.isAdjusting = false;
-  }, false);
+  document.addEventListener('mouseup', afterAdjust, false);
 
   redraw();
   redrawLines();
