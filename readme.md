@@ -12,6 +12,7 @@
 - [x] lens shows from 0 to max
 - [ ] lens check edge maximum?
 - [x] path animations
+- [x] restrain max zoom
 - [ ] legends
 - [ ] legends animation
 - [ ] fetch data asynchronously

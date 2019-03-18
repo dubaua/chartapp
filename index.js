@@ -1,5 +1,6 @@
 /* CONSTANTS */
-const MAX_ZOOM = 0.2;
+const MAX_ZOOM = 0.05;
+const INITIAL_ZOOM = 0.2;
 let currentIndex = 1;
 
 function createChart({ columns, types, names, colors }) {
@@ -8,12 +9,12 @@ function createChart({ columns, types, names, colors }) {
     y: [],
     maxY: 0,
     minY: 0,
-    start: 1 - MAX_ZOOM,
+    start: 1 - INITIAL_ZOOM,
     end: 1,
     isAdjusting: false,
     eventType: '',
     adjustStart: 0,
-    adjustCurrent: [1 - MAX_ZOOM, 1],
+    prev: [1 - INITIAL_ZOOM, 1],
     chartWidth: 0,
   };
 
@@ -146,7 +147,7 @@ function createChart({ columns, types, names, colors }) {
       e.stopPropagation();
       $.isAdjusting = true;
       $.eventType = type;
-      $.adjustCurrent = [$.start, $.end];
+      $.prev = [$.start, $.end];
       $.adjustStart = getEventX(e);
       setChartWidth();
     };
@@ -155,13 +156,27 @@ function createChart({ columns, types, names, colors }) {
   function adjust(e) {
     if ($.isAdjusting) {
       const delta = (getEventX(e) - $.adjustStart) / $.chartWidth;
-      const start = $.adjustCurrent[0] + delta;
-      const end = $.adjustCurrent[1] + delta;
-      if ($.eventType === 'start' || ($.eventType === 'both' && end <= 1)) {
-        $.start = limit(start, 0, 1);
-      }
-      if ($.eventType === 'end' || ($.eventType === 'both' && start >= 0)) {
-        $.end = limit(end, 0, 1);
+      const start = $.prev[0] + delta;
+      const end = $.prev[1] + delta;
+      switch ($.eventType) {
+        case 'start':
+          if ($.prev[1] - start >= MAX_ZOOM) {
+            $.start = limit(start, 0, 1);
+          }
+          break;
+        case 'end':
+          if (end - $.prev[0] >= MAX_ZOOM) {
+            $.end = limit(end, 0, 1);
+          }
+          break;
+        case 'both':
+          if (end <= 1) {
+            $.start = limit(start, 0, 1);
+          }
+          if (start >= 0) {
+            $.end = limit(end, 0, 1);
+          }
+          break;
       }
       draw(Math.sign(delta));
     }
