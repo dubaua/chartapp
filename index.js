@@ -133,6 +133,10 @@ function createChart({ columns, types, names, colors }) {
     );
   }
 
+  function setChartWidth() {
+    $.chartWidth = $.previewEl.offsetWidth;
+  }
+
   function beforeAdjust(type) {
     return function(e) {
       e.stopPropagation();
@@ -140,7 +144,7 @@ function createChart({ columns, types, names, colors }) {
       $.eventType = type;
       $.adjustCurrent = [$.start, $.end];
       $.adjustStart = getEventX(e);
-      $.chartWidth = $.previewEl.offsetWidth;
+      setChartWidth();
     };
   }
 
@@ -192,6 +196,7 @@ function createChart({ columns, types, names, colors }) {
   //   document.removeEventListener('touchmove', adjust, false);
   //   document.removeEventListener('mouseup', afterAdjust, false);
   //   document.removeEventListener('touchend', afterAdjust, false);
+  //   window.removeEventListener('resize', setChartWidth, false);
   //   chartEl.remove();
   // }
 
@@ -199,6 +204,7 @@ function createChart({ columns, types, names, colors }) {
   document.addEventListener('touchmove', adjust, false);
   document.addEventListener('mouseup', afterAdjust, false);
   document.addEventListener('touchend', afterAdjust, false);
+  window.addEventListener('resize', setChartWidth, false);
 
   draw(0);
 
