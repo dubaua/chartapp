@@ -13,7 +13,7 @@
 - [ ] lens check edge maximum?
 - [x] path animations
 - [x] restrain max zoom
-- [ ] show detailed
+- [ ] show detailed: Insert each chart in element. Listen to mutation observer on this element and callback on insert.
 - [ ] legends
 - [ ] legends animation
 - [ ] fetch data asynchronously
