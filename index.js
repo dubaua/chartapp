@@ -39,6 +39,14 @@ function createChart({ columns, types, names, colors }, parentElement) {
   maxY = Math.max(...allY);
   minY = Math.min(...allY);
 
+  function getStartIndex() {
+    return Math.floor(xAxisLength * start);
+  }
+
+  function getEndIndex() {
+    return Math.ceil(xAxisLength * end);
+  }
+
   // getters
   function activeYs() {
     return yAxis.filter(line => line.active);
@@ -46,7 +54,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function selectedY() {
     return [].concat(
-      ...activeYs().map(line => line.data.slice(Math.floor(xAxisLength * start), Math.floor(xAxisLength * end)))
+      ...activeYs().map(line => line.data.slice(getStartIndex(), getEndIndex()))
     );
   }
 
