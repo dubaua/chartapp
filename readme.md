@@ -27,6 +27,7 @@
 - [x] optimize redrawing checking is delta changed
 - [ ] optimize redrawing with requestAnimationFrame
 - [ ] minimize js
+- [ ] calculate range with left + width, not left..right
 
 # CSS
 - [x] hide overflow y
@@ -35,4 +36,12 @@
 - [ ] adopt for small screens
 
 # Bugs
-- [ ] bug with dragging left-right expanging range
+- [ ] dragging left-right fast causing expanging range
+
+# Flow
+
+immediately show controls moving: switchers and range. Lines animates very fast.
+
+chart lens animates smoothy after changing controls
+
+legends animates after chart lens animation

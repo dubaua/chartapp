@@ -232,8 +232,9 @@ function createChart({ columns, types, names, colors }, parentElement) {
         }
         break;
     }
+    drawPreview();
     drawLegend(Math.sign(delta));
-    drawCharts();
+    animate(drawCharts, easeInSine, 1000);
   }
 
   function afterAdjust(e) {
@@ -244,6 +245,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
     return function() {
       line.a = !line.a;
       drawLinesAndSwitches();
+      drawPreview();
       drawCharts();
       drawLegend();
     };
@@ -267,15 +269,19 @@ function createChart({ columns, types, names, colors }, parentElement) {
     });
   }
 
-  function drawCharts() {
+  function drawPreview() {
     refs.rangeEl.style.left = `${start * 100}%`;
     refs.rangeEl.style.right = `${(1 - end) * 100}%`;
-
-    refs.lensSvg.setAttribute('viewBox', `0 0 ${xAxisLength * (end - start)} ${maxY}`);
-    refs.lensUse.setAttribute('x', -xAxisLength * start);
-    refs.lensUse.style.transform = `scale(1, ${maxY / maxSelectedY()})`;
-
     refs.previewUse.style.transform = `scale(1, ${maxY / maxActiveY()})`;
+  }
+
+  function drawCharts(progress = 1) {
+    // here we need to animate from start to end, not from 0 to end.
+    const startIndex = getStartIndex();
+    const viewBoxX = getEndIndex() - startIndex;
+    refs.lensSvg.setAttribute('viewBox', `0 0 ${viewBoxX} ${maxY}`);
+    refs.lensUse.setAttribute('x', -startIndex);
+    refs.lensUse.style.transform = `scale(1, ${maxY / maxSelectedY()})`;
   }
 
   let drawLegend = debounce(function(param) {
@@ -314,6 +320,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
   window.addEventListener('resize', setChartWidthAndOffset, false);
 
   drawLinesAndSwitches();
+  drawPreview();
   drawCharts();
 
   currentIndex++;
@@ -422,6 +429,20 @@ function getDateString(date) {
   const [weekday, month, day] = new Date(date).toString().split(' ');
   return month + ' ' + day.replace(/^0/, '');
 }
+
+function animate(draw, easing, duration) {
+  var start = performance.now();
+  requestAnimationFrame(function animate(time) {
+    var timeFraction = limit((time - start) / duration, 0, 1);
+    var progress = easing(timeFraction);
+    draw(progress);
+    if (timeFraction < 1) {
+      requestAnimationFrame(animate);
+    }
+  });
+}
+
+function easeInSine (t) { return -Math.cos(t * Math.PI / 2) + 1; }
 
 /* PERFORMANCE TESTING */
 
