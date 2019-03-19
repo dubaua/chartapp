@@ -32,3 +32,6 @@
 - [ ] try variables
 - [ ] optimize css
 - [ ] adopt for small screens
+
+# Bugs
+- [ ] bug with dragging left-right expanging range
