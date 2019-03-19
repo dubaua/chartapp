@@ -3,7 +3,7 @@ const MAX_ZOOM = 0.05;
 const INITIAL_ZOOM = 0.2;
 let currentIndex = 1;
 
-function createChart({ columns, types, names, colors }) {
+function createChart({ columns, types, names, colors }, parentElement) {
   let $ = {
     x: [],
     y: [],
@@ -59,13 +59,11 @@ function createChart({ columns, types, names, colors }) {
   };
 
   // create DOM with hyperscript
-  const chartEl = create('section.chart', {}, [
+  const chartElement = create('section.chart', {}, [
     [
       'div.chart__lens',
       {
         l: {
-          mouseover: setChartWidth,
-          touchstart: setChartWidth,
           mousemove: showDetailed,
           touchmove: showDetailed,
         },
@@ -150,10 +148,9 @@ function createChart({ columns, types, names, colors }) {
   }
 
   // on create and resize
-  function setChartWidth() {
+  function setChartWidthAndOffset() {
     $.chartWidth = $.previewEl.offsetWidth;
     $.chartOffsetX = $.previewEl.getBoundingClientRect().x;
-    console.log('here');
   }
 
   function beforeAdjust(type) {
@@ -163,7 +160,6 @@ function createChart({ columns, types, names, colors }) {
       $.eventType = type;
       $.prev = [$.start, $.end];
       $.adjustStart = getEventX(e);
-      setChartWidth();
     };
   }
 
@@ -212,7 +208,7 @@ function createChart({ columns, types, names, colors }) {
     // set on dom inserted, reset on resize
     // grab position 0..1 from eventX
     const posX = Math.floor((getEventX(e) - $.chartOffsetX) / $.chartWidth * $.xCount);
-    console.log(posX);
+    // console.log(posX);
     // create line over svg, create crossing rounds for each line
 
     // $.lensZoom.setAttribute('d', `M${x} 0L${x} ${$.maxY}`);
@@ -241,22 +237,36 @@ function createChart({ columns, types, names, colors }) {
   //   document.removeEventListener('touchmove', adjust, false);
   //   document.removeEventListener('mouseup', afterAdjust, false);
   //   document.removeEventListener('touchend', afterAdjust, false);
-  //   window.removeEventListener('resize', setChartWidth, false);
-  //   chartEl.remove();
+  //   window.removeEventListener('resize', setChartWidthAndOffset, false);
+  //   chartElement.remove();
   // }
+
+  const observer = new MutationObserver(mutationCallback);
+
+  function mutationCallback(mutationsList, observer) {
+    for (var mutation of mutationsList) {
+      if (mutation.type == 'childList') {
+        setChartWidthAndOffset();
+        observer.disconnect();
+      }
+    }
+  }
+
+  observer.observe(parentElement, { childList: true });
 
   document.addEventListener('mousemove', adjust, false);
   document.addEventListener('touchmove', adjust, false);
   document.addEventListener('mouseup', afterAdjust, false);
   document.addEventListener('touchend', afterAdjust, false);
-  window.addEventListener('resize', setChartWidth, false);
+  window.addEventListener('resize', setChartWidthAndOffset, false);
 
   draw(0);
 
   currentIndex++;
 
-  chartEl.$chart = $;
-  return chartEl;
+  chartElement.$chart = $;
+  parentElement.appendChild(chartElement);
+  return chartElement;
 }
 
 /* UTILS */
@@ -352,14 +362,13 @@ function ctt(fn, msg, count = 1) {
 /* USERCODE */
 
 const app = document.getElementById('chart-app');
-console.time('creating');
-const chart0 = createChart(chart_data[0]);
-console.timeEnd('creating');
-console.log(chart0.$chart);
-app.appendChild(chart0);
-// chart_data.forEach(element => {
-//   console.time('creating');
-//   const chart = createChart(element)
-//   console.timeEnd('creating');
-//   app.appendChild(chart);
-// });
+chart_data.slice(0,1).forEach(data => {
+  var holder = document.createElement('div');
+
+  console.time('creating');
+  var chart = createChart(data, holder);
+  console.timeEnd('creating');
+
+  app.appendChild(holder);
+  console.log(chart.$chart);
+});
