@@ -26,16 +26,16 @@ function createChart({ columns, types, names, colors }, parentElement) {
         break;
       case 'line':
         yAxis.push({
-          data: getByFirst(columns, key).slice(1),
-          color: colors[key],
-          name: names[key],
-          active: true,
+          d: getByFirst(columns, key).slice(1),
+          c: colors[key],
+          n: names[key],
+          a: true,
         });
         break;
     }
   }
 
-  const allY = [].concat(...yAxis.map(line => line.data));
+  const allY = [].concat(...yAxis.map(line => line.d));
   maxY = Math.max(...allY);
   minY = Math.min(...allY);
 
@@ -49,15 +49,15 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   // getters
   function activeYs() {
-    return yAxis.filter(line => line.active);
+    return yAxis.filter(line => line.a);
   }
 
   function selectedY() {
-    return [].concat(...activeYs().map(line => line.data.slice(getStartIndex(), getEndIndex())));
+    return [].concat(...activeYs().map(line => line.d.slice(getStartIndex(), getEndIndex())));
   }
 
   function maxActiveY() {
-    return Math.max(...[].concat(...activeYs().map(line => line.data)));
+    return Math.max(...[].concat(...activeYs().map(line => line.d)));
   }
 
   function maxSelectedY() {
@@ -127,28 +127,28 @@ function createChart({ columns, types, names, colors }, parentElement) {
     ['div.chart__controls', {}, yAxis.map(createSwitcher)],
   ]);
 
-  function createPath({ data, color }, i) {
+  function createPath({ d, c }, i) {
     return create('path.fade-out', {
       a: {
-        stroke: color,
+        stroke: c,
         fill: 'none',
         'vector-effect': 'non-scaling-stroke',
-        d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
+        d: d.reduce((a, y, x) => (a += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
       },
       r: bindReference(yAxis[i], 'path'),
     });
   }
 
-  function createSwitcher({ name, color }, i) {
+  function createSwitcher({ n, c }, i) {
     return create(
       'button.chart__switcher.switcher',
       {
-        l: { click: toggleSwitch(i) },
+        l: { click: toggleSwitch(yAxis[i]) },
         r: bindReference(yAxis[i], 'switcher'),
       },
       [
-        ['span.switcher__checkbox', { s: { backgroundColor: color } }],
-        ['span.switcher__label', { d: { textContent: name } }],
+        ['span.switcher__checkbox', { s: { backgroundColor: c } }],
+        ['span.switcher__label', { d: { textContent: n } }],
       ]
     );
   }
@@ -200,19 +200,19 @@ function createChart({ columns, types, names, colors }, parentElement) {
         }
         break;
     }
-    updateLegend(Math.sign(delta));
-    draw(Math.sign(delta));
+    drawLegend(Math.sign(delta));
+    drawCharts();
   }
 
   function afterAdjust(e) {
     isAdjusting = false;
   }
 
-  function toggleSwitch(i) {
+  function toggleSwitch(line) {
     return function() {
-      const line = yAxis[i];
-      line.active = !line.active;
-      draw(0);
+      line.a = !line.a;
+      drawLinesAndSwitches();
+      drawCharts();
     };
   }
 
@@ -228,12 +228,14 @@ function createChart({ columns, types, names, colors }, parentElement) {
     // show data
   }
 
-  function draw(direction) {
-    yAxis.forEach(({ switcher, active, path }) => {
-      toggleClass(switcher, active, 'active');
-      toggleClass(path, active, 'active');
+  function drawLinesAndSwitches() {
+    yAxis.forEach(({ switcher, a, path }) => {
+      toggleClass(switcher, a, 'active');
+      toggleClass(path, a, 'active');
     });
+  }
 
+  function drawCharts() {
     refs.rangeEl.style.left = `${start * 100}%`;
     refs.rangeEl.style.right = `${(1 - end) * 100}%`;
 
@@ -244,8 +246,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
     refs.previewUse.style.transform = `scale(1, ${maxY / maxActiveY()})`;
   }
 
-  let updateLegend = debounce(function(param) {
-    console.log('updateLegend', param);
+  let drawLegend = debounce(function(param) {
+    console.log('drawLegend', param);
   }, 100);
 
   // function destroy() {
@@ -276,7 +278,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
   document.addEventListener('touchend', afterAdjust, false);
   window.addEventListener('resize', setChartWidthAndOffset, false);
 
-  draw(0);
+  drawLinesAndSwitches();
+  drawCharts();
 
   currentIndex++;
 

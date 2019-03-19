@@ -21,6 +21,7 @@
 
 # Optimizing
 - [x] move auxiliary data from options keys to variables for better minification
+- [x] reduce y key size
 - [ ] lens check edge maximum?
 - [ ] fetch data asynchronously
 - [x] optimize redrawing checking is delta changed
