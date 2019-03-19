@@ -53,9 +53,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function selectedY() {
-    return [].concat(
-      ...activeYs().map(line => line.data.slice(getStartIndex(), getEndIndex()))
-    );
+    return [].concat(...activeYs().map(line => line.data.slice(getStartIndex(), getEndIndex())));
   }
 
   function maxActiveY() {
@@ -202,6 +200,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
         }
         break;
     }
+    updateLegend(Math.sign(delta));
     draw(Math.sign(delta));
   }
 
@@ -244,6 +243,10 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
     refs.previewUse.style.transform = `scale(1, ${maxY / maxActiveY()})`;
   }
+
+  let updateLegend = debounce(function(param) {
+    console.log('updateLegend', param);
+  }, 100);
 
   // function destroy() {
   //   document.removeEventListener('mousemove', adjust, false);
@@ -359,6 +362,18 @@ function bindReference(target, key, el) {
     return bindReference.bind(this, target, key);
   }
   target[key] = el;
+}
+
+function debounce(fn, delay) {
+  let timeoutId;
+  return function() {
+    const args = arguments;
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function() {
+      timeoutId = null;
+      fn.apply(null, args);
+    }, delay);
+  };
 }
 
 /* PERFORMANCE TESTING */

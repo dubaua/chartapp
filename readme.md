@@ -16,8 +16,8 @@
 # Features
 - [ ] themes switching below all charts. handle chart colors with rgb function
 - [ ] detailed view of chart point
-- [ ] legends
-- [ ] legends animation
+- [ ] legends 
+- [ ] legends animation debounced
 
 # Optimizing
 - [x] move auxiliary data from options keys to variables for better minification
