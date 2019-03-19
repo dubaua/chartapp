@@ -1,6 +1,7 @@
 /* CONSTANTS */
 const MAX_ZOOM = 0.05;
-const INITIAL_ZOOM = 0.2;
+const INITIAL_ZOOM = 0.15;
+const LEGEND_SIZE_Y = 6;
 let currentIndex = 1;
 
 function createChart({ columns, types, names, colors }, parentElement) {
@@ -64,39 +65,51 @@ function createChart({ columns, types, names, colors }, parentElement) {
     return Math.max(...selectedY());
   }
 
+  function getLedendY(i) {
+    return Math.floor(maxSelectedY() / LEGEND_SIZE_Y) * i;
+  }
+
   // create DOM with hyperscript
   const chartElement = create('section.chart', {}, [
     [
-      'div.chart__lens',
-      {
-        l: {
-          mousemove: showDetailed,
-          touchmove: showDetailed,
-        },
-        r: bindReference(refs, 'lensEl'),
-      },
+      'div.chart__body',
+      {},
       [
         [
-          'svg',
+          'div.chart__lens',
           {
-            a: {
-              viewBox: `0 0 ${xAxisLength} ${maxY}`,
-              preserveAspectRatio: 'none',
+            l: {
+              mousemove: showDetailed,
+              touchmove: showDetailed,
             },
-            r: bindReference(refs, 'lensSvg'),
+            r: bindReference(refs, 'lensEl'),
           },
           [
-            ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, yAxis.map(createPath)],
-            ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindReference(refs, 'lensUse') }],
             [
-              'path.chart__zoom',
+              'svg',
               {
-                a: { d: `M0 0L0 ${maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
-                r: bindReference(refs, 'lensZoom'),
+                a: {
+                  viewBox: `0 0 ${xAxisLength} ${maxY}`,
+                  preserveAspectRatio: 'none',
+                },
+                r: bindReference(refs, 'lensSvg'),
               },
+              [
+                ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, yAxis.map(createPath)],
+                ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindReference(refs, 'lensUse') }],
+                [
+                  'path.chart__zoom',
+                  {
+                    a: { d: `M0 0L0 ${maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
+                    r: bindReference(refs, 'lensZoom'),
+                  },
+                ],
+              ],
             ],
           ],
         ],
+        ['div.chart__legend-y', {}, [...createLegendY()]],
+        ['div.chart__legend-x', {}, [...createLegendX()]],
       ],
     ],
     [
@@ -146,10 +159,29 @@ function createChart({ columns, types, names, colors }, parentElement) {
         l: { click: toggleSwitch(yAxis[i]) },
         r: bindReference(yAxis[i], 'switcher'),
       },
-      [
-        ['span.switcher__checkbox', { s: { backgroundColor: c } }],
-        ['span.switcher__label', { d: { textContent: n } }],
-      ]
+      [['span.switcher__checkbox', { s: { backgroundColor: c } }], ['span.switcher__label', { d: { textContent: n } }]]
+    );
+  }
+
+  function createLegendY() {
+    let legend = [];
+    console.log();
+    for (let i = 0; i < LEGEND_SIZE_Y; i++) {
+      legend.unshift(
+        create('div.chart__legend-y-section', {
+          d: { textContent: getLedendY(i) },
+          r: bindReference(refs, `legendY${i}`),
+        })
+      );
+    }
+    return legend;
+  }
+
+  function createLegendX() {
+    return xAxis.map(date =>
+      create('div.chart__legend-x-section', {}, [
+        ['div.chart__legend-x-label', { d: { textContent: getDateString(date) } }],
+      ])
     );
   }
 
@@ -213,16 +245,16 @@ function createChart({ columns, types, names, colors }, parentElement) {
       line.a = !line.a;
       drawLinesAndSwitches();
       drawCharts();
+      drawLegend();
     };
   }
 
   function showDetailed(e) {
     // set on dom inserted, reset on resize
     // grab position 0..1 from eventX
-    const posX = Math.floor(((getEventX(e) - chartOffsetX) / chartWidth) * xAxisLength);
+    // const posX = Math.floor(((getEventX(e) - chartOffsetX) / chartWidth) * xAxisLength);
     // console.log(posX);
     // create line over svg, create crossing rounds for each line
-
     // refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
     // show lens line over svg, show rounds, grab data
     // show data
@@ -248,6 +280,9 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   let drawLegend = debounce(function(param) {
     console.log('drawLegend', param);
+    for (let i = 0; i < LEGEND_SIZE_Y; i++) {
+      refs[`legendY${i}`].textContent = getLedendY(i);
+    }
   }, 100);
 
   // function destroy() {
@@ -377,6 +412,15 @@ function debounce(fn, delay) {
       fn.apply(null, args);
     }, delay);
   };
+}
+
+function round(value) {
+  return ((value * 100) | 0) * 0.01;
+}
+
+function getDateString(date) {
+  const [weekday, month, day] = new Date(date).toString().split(' ');
+  return month + ' ' + day.replace(/^0/, '');
 }
 
 /* PERFORMANCE TESTING */

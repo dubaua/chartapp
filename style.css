@@ -7,11 +7,16 @@ body {
   margin: 18px;
 }
 
+.chart__body {
+  position: relative;
+  margin-bottom: 45px;
+}
+
 .chart__lens {
-  margin: 0 -18px;
+  overflow: hidden;
+  margin: -1.5px -18px;
   padding: 1.5px 18px;
   line-height: 0;
-  overflow: hidden;
 }
 
 .chart svg {
@@ -33,6 +38,50 @@ body {
 
 .chart__lens symbol {
   overflow: visible;
+}
+
+.chart__legend-y {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart__legend-y-section {
+  padding-bottom: 8px;
+  display: flex;
+  flex-grow: 1;
+  align-items: flex-end;
+  line-height: 1;
+  border-bottom: 1.5px solid rgba(88, 151, 196, 0.11);
+  color: #96a2aa;
+}
+
+.chart__legend-x {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  display: flex;
+}
+
+.chart__legend-x-section {
+  display: block;
+  flex-grow: 1;
+  position: relative;
+  height: 1em;
+}
+
+.chart__legend-x-label {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  color: #96a2aa;
 }
 
 .chart__preview {
@@ -86,7 +135,7 @@ body {
 }
 
 .chart__switcher + .chart__switcher {
-  margin-left: 21px;
+  margin-left: 22px;
 }
 
 .switcher {
@@ -127,7 +176,7 @@ body {
   left: 2px;
   display: block;
   border-radius: 50%;
-  transition: transform 0.1s cubic-bezier(0.47, 0, 0.75, 0.72);
+  transition: transform 0.22s cubic-bezier(0.47, 0, 0.75, 0.72);
   transform: scale(1);
   background: white;
 }
@@ -143,7 +192,7 @@ body {
 
 .fade-out {
   opacity: 0;
-  transition: opacity 0.1s cubic-bezier(0.47, 0, 0.75, 0.72);
+  transition: opacity 0.22s cubic-bezier(0.47, 0, 0.75, 0.72);
 }
 
 .fade-out.active {

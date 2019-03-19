@@ -14,10 +14,10 @@
 - [x] show detailed: Insert each chart in element. Listen to mutation observer on this element and callback on insert.
 
 # Features
-- [ ] themes switching below all charts. handle chart colors with rgb function
-- [ ] detailed view of chart point
-- [ ] legends 
-- [ ] legends animation debounced
+- [ ] !legends 
+- [ ] !themes switching below all charts. handle chart colors with rgb function
+- [ ] !detailed view of chart point
+- [x] debounce legends animation 
 
 # Optimizing
 - [x] move auxiliary data from options keys to variables for better minification
@@ -31,7 +31,7 @@
 # CSS
 - [x] hide overflow y
 - [ ] try variables
-- [ ] optimize css
+- [ ] !optimize css
 - [ ] adopt for small screens
 
 # Bugs
