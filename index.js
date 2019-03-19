@@ -4,29 +4,28 @@ const INITIAL_ZOOM = 0.2;
 let currentIndex = 1;
 
 function createChart({ columns, types, names, colors }, parentElement) {
-  let $ = {
-    x: [],
-    y: [],
-    maxY: 0,
-    minY: 0,
-    start: 1 - INITIAL_ZOOM,
-    end: 1,
-  };
-
+  let xAxis = [];
+  let xAxisLength = [];
+  let yAxis = [];
+  let start = 1 - INITIAL_ZOOM;
+  let end = 1;
+  let maxY = 0;
+  let minY = 0;
   let chartWidth = 0;
   let chartOffsetX = 0;
   let prevX = 0;
   let isAdjusting = false;
   let eventType = '';
+  let refs = {};
 
   for (const key in types) {
     switch (types[key]) {
       case 'x':
-        $.x = getByFirst(columns, key).slice(1);
-        $.xCount = $.x.length - 1;
+        xAxis = getByFirst(columns, key).slice(1);
+        xAxisLength = xAxis.length - 1;
         break;
       case 'line':
-        $.y.push({
+        yAxis.push({
           data: getByFirst(columns, key).slice(1),
           color: colors[key],
           name: names[key],
@@ -36,28 +35,28 @@ function createChart({ columns, types, names, colors }, parentElement) {
     }
   }
 
-  const allY = [].concat(...$.y.map(line => line.data));
-  $.maxY = Math.max(...allY);
-  $.minY = Math.min(...allY);
+  const allY = [].concat(...yAxis.map(line => line.data));
+  maxY = Math.max(...allY);
+  minY = Math.min(...allY);
 
-  // reactive getters
-  $.activeYs = function() {
-    return $.y.filter(line => line.active);
-  };
+  // getters
+  function activeYs() {
+    return yAxis.filter(line => line.active);
+  }
 
-  $.selectedY = function() {
+  function selectedY() {
     return [].concat(
-      ...$.activeYs().map(line => line.data.slice(Math.floor($.xCount * $.start), Math.floor($.xCount * $.end)))
+      ...activeYs().map(line => line.data.slice(Math.floor(xAxisLength * start), Math.floor(xAxisLength * end)))
     );
-  };
+  }
 
-  $.maxActiveY = function() {
-    return Math.max(...[].concat(...$.activeYs().map(line => line.data)));
-  };
+  function maxActiveY() {
+    return Math.max(...[].concat(...activeYs().map(line => line.data)));
+  }
 
-  $.maxSelectedY = function() {
-    return Math.max(...$.selectedY());
-  };
+  function maxSelectedY() {
+    return Math.max(...selectedY());
+  }
 
   // create DOM with hyperscript
   const chartElement = create('section.chart', {}, [
@@ -68,26 +67,26 @@ function createChart({ columns, types, names, colors }, parentElement) {
           mousemove: showDetailed,
           touchmove: showDetailed,
         },
-        r: bindRel($, 'lensEl'),
+        r: bindReference(refs, 'lensEl'),
       },
       [
         [
           'svg',
           {
             a: {
-              viewBox: `0 0 ${$.xCount} ${$.maxY}`,
+              viewBox: `0 0 ${xAxisLength} ${maxY}`,
               preserveAspectRatio: 'none',
             },
-            r: bindRel($, 'lensSvg'),
+            r: bindReference(refs, 'lensSvg'),
           },
           [
-            ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, $.y.map(createPath)],
-            ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindRel($, 'lensUse') }],
+            ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, yAxis.map(createPath)],
+            ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindReference(refs, 'lensUse') }],
             [
               'path.chart__zoom',
               {
-                a: { d: `M0 0L0 ${$.maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
-                r: bindRel($, 'lensZoom'),
+                a: { d: `M0 0L0 ${maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
+                r: bindReference(refs, 'lensZoom'),
               },
             ],
           ],
@@ -96,21 +95,21 @@ function createChart({ columns, types, names, colors }, parentElement) {
     ],
     [
       'div.chart__preview',
-      { r: bindRel($, 'previewEl') },
+      { r: bindReference(refs, 'previewEl') },
       [
         [
           'svg',
           {
             a: {
-              viewBox: `0 0 ${$.xCount} ${$.maxY - $.minY}`,
+              viewBox: `0 0 ${xAxisLength} ${maxY - minY}`,
               preserveAspectRatio: 'none',
             },
           },
-          [['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindRel($, 'previewUse') }]],
+          [['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindReference(refs, 'previewUse') }]],
         ],
         [
           'div.chart__range',
-          { r: bindRel($, 'rangeEl') },
+          { r: bindReference(refs, 'rangeEl') },
           [
             ['div.chart__adjust', { l: { mousedown: beforeAdjust('start'), touchstart: beforeAdjust('start') } }],
             ['div.chart__handle', { l: { mousedown: beforeAdjust('both'), touchstart: beforeAdjust('both') } }],
@@ -119,7 +118,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
         ],
       ],
     ],
-    ['div.chart__controls', {}, $.y.map(createSwitcher)],
+    ['div.chart__controls', {}, yAxis.map(createSwitcher)],
   ]);
 
   function createPath({ data, color }, i) {
@@ -128,9 +127,9 @@ function createChart({ columns, types, names, colors }, parentElement) {
         stroke: color,
         fill: 'none',
         'vector-effect': 'non-scaling-stroke',
-        d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${$.maxY - y}`), ''),
+        d: data.reduce((d, y, x) => (d += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
       },
-      r: bindRel($.y[i], 'path'),
+      r: bindReference(yAxis[i], 'path'),
     });
   }
 
@@ -139,7 +138,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
       'button.chart__switcher.switcher',
       {
         l: { click: toggleSwitch(i) },
-        r: bindRel($.y[i], 'switcher'),
+        r: bindReference(yAxis[i], 'switcher'),
       },
       [
         ['span.switcher__checkbox', { s: { backgroundColor: color } }],
@@ -148,10 +147,10 @@ function createChart({ columns, types, names, colors }, parentElement) {
     );
   }
 
-  // after create and  on  resize
+  // after create and on resize
   function setChartWidthAndOffset() {
-    chartWidth = $.previewEl.offsetWidth;
-    chartOffsetX = $.previewEl.getBoundingClientRect().x;
+    chartWidth = refs.previewEl.offsetWidth;
+    chartOffsetX = refs.previewEl.getBoundingClientRect().x;
   }
 
   function beforeAdjust(type) {
@@ -173,25 +172,25 @@ function createChart({ columns, types, names, colors }, parentElement) {
     if (!delta) {
       return;
     }
-    const nextStart = $.start + delta;
-    const nextEnd = $.end + delta;
+    const nextStart = start + delta;
+    const nextEnd = end + delta;
     switch (eventType) {
       case 'start':
-        if ($.end - nextStart >= MAX_ZOOM) {
-          $.start = limit(nextStart, 0, 1);
+        if (end - nextStart >= MAX_ZOOM) {
+          start = limit(nextStart, 0, 1);
         }
         break;
       case 'end':
-        if (nextEnd - $.start >= MAX_ZOOM) {
-          $.end = limit(nextEnd, 0, 1);
+        if (nextEnd - start >= MAX_ZOOM) {
+          end = limit(nextEnd, 0, 1);
         }
         break;
       case 'both':
         if (nextEnd <= 1) {
-          $.start = limit(nextStart, 0, 1);
+          start = limit(nextStart, 0, 1);
         }
         if (nextStart >= 0) {
-          $.end = limit(nextEnd, 0, 1);
+          end = limit(nextEnd, 0, 1);
         }
         break;
     }
@@ -204,7 +203,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function toggleSwitch(i) {
     return function() {
-      const line = $.y[i];
+      const line = yAxis[i];
       line.active = !line.active;
       draw(0);
     };
@@ -213,32 +212,32 @@ function createChart({ columns, types, names, colors }, parentElement) {
   function showDetailed(e) {
     // set on dom inserted, reset on resize
     // grab position 0..1 from eventX
-    const posX = Math.floor(((getEventX(e) - chartOffsetX) / chartWidth) * $.xCount);
+    const posX = Math.floor(((getEventX(e) - chartOffsetX) / chartWidth) * xAxisLength);
     // console.log(posX);
     // create line over svg, create crossing rounds for each line
 
-    // $.lensZoom.setAttribute('d', `M${x} 0L${x} ${$.maxY}`);
+    // refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
     // show lens line over svg, show rounds, grab data
     // show data
   }
 
   function draw(direction) {
-    $.y.forEach(({ switcher, active, path }) => {
+    yAxis.forEach(({ switcher, active, path }) => {
       toggleClass(switcher, active, 'active');
       toggleClass(path, active, 'active');
     });
 
-    $.rangeEl.style.left = `${$.start * 100}%`;
-    $.rangeEl.style.right = `${(1 - $.end) * 100}%`;
+    refs.rangeEl.style.left = `${start * 100}%`;
+    refs.rangeEl.style.right = `${(1 - end) * 100}%`;
 
-    $.lensSvg.setAttribute('viewBox', `0 0 ${$.xCount * ($.end - $.start)} ${$.maxY}`);
-    $.lensUse.setAttribute('x', -$.xCount * $.start);
-    $.lensUse.style.transform = `scale(1, ${$.maxY / $.maxSelectedY()})`;
+    refs.lensSvg.setAttribute('viewBox', `0 0 ${xAxisLength * (end - start)} ${maxY}`);
+    refs.lensUse.setAttribute('x', -xAxisLength * start);
+    refs.lensUse.style.transform = `scale(1, ${maxY / maxSelectedY()})`;
 
-    $.previewUse.style.transform = `scale(1, ${$.maxY / $.maxActiveY()})`;
+    refs.previewUse.style.transform = `scale(1, ${maxY / maxActiveY()})`;
   }
 
-  // $.destroy = function() {
+  // function destroy() {
   //   document.removeEventListener('mousemove', adjust, false);
   //   document.removeEventListener('touchmove', adjust, false);
   //   document.removeEventListener('mouseup', afterAdjust, false);
@@ -270,7 +269,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   currentIndex++;
 
-  chartElement.$chart = $;
   parentElement.appendChild(chartElement);
   return chartElement;
 }
@@ -348,9 +346,9 @@ function limit(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function bindRel(target, key, el) {
+function bindReference(target, key, el) {
   if (!el) {
-    return bindRel.bind(this, target, key);
+    return bindReference.bind(this, target, key);
   }
   target[key] = el;
 }
@@ -376,5 +374,5 @@ chart_data.slice(0, 1).forEach(data => {
   console.timeEnd('creating');
 
   app.appendChild(holder);
-  console.log(chart.$chart);
+  console.log(chart);
 });

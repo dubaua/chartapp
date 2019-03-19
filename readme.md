@@ -20,7 +20,7 @@
 - [ ] legends animation
 
 # Optimizing
-- [ ] move auxiliary data from options keys to variables for better minification
+- [x] move auxiliary data from options keys to variables for better minification
 - [ ] lens check edge maximum?
 - [ ] fetch data asynchronously
 - [x] optimize redrawing checking is delta changed
@@ -31,3 +31,4 @@
 - [x] hide overflow y
 - [ ] try variables
 - [ ] optimize css
+- [ ] adopt for small screens
