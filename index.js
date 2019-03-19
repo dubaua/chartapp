@@ -11,12 +11,13 @@ function createChart({ columns, types, names, colors }, parentElement) {
     minY: 0,
     start: 1 - INITIAL_ZOOM,
     end: 1,
-    isAdjusting: false,
-    eventType: '',
-    adjustStart: 0,
-    prev: [1 - INITIAL_ZOOM, 1],
-    chartWidth: 0,
   };
+
+  let chartWidth = 0;
+  let chartOffsetX = 0;
+  let prevX = 0;
+  let isAdjusting = false;
+  let eventType = '';
 
   for (const key in types) {
     switch (types[key]) {
@@ -147,53 +148,58 @@ function createChart({ columns, types, names, colors }, parentElement) {
     );
   }
 
-  // on create and resize
+  // after create and  on  resize
   function setChartWidthAndOffset() {
-    $.chartWidth = $.previewEl.offsetWidth;
-    $.chartOffsetX = $.previewEl.getBoundingClientRect().x;
+    chartWidth = $.previewEl.offsetWidth;
+    chartOffsetX = $.previewEl.getBoundingClientRect().x;
   }
 
   function beforeAdjust(type) {
     return function(e) {
       e.stopPropagation();
-      $.isAdjusting = true;
-      $.eventType = type;
-      $.prev = [$.start, $.end];
-      $.adjustStart = getEventX(e);
+      isAdjusting = true;
+      eventType = type;
+      prevX = getEventX(e);
     };
   }
 
   function adjust(e) {
-    if ($.isAdjusting) {
-      const delta = (getEventX(e) - $.adjustStart) / $.chartWidth;
-      const start = $.prev[0] + delta;
-      const end = $.prev[1] + delta;
-      switch ($.eventType) {
-        case 'start':
-          if ($.prev[1] - start >= MAX_ZOOM) {
-            $.start = limit(start, 0, 1);
-          }
-          break;
-        case 'end':
-          if (end - $.prev[0] >= MAX_ZOOM) {
-            $.end = limit(end, 0, 1);
-          }
-          break;
-        case 'both':
-          if (end <= 1) {
-            $.start = limit(start, 0, 1);
-          }
-          if (start >= 0) {
-            $.end = limit(end, 0, 1);
-          }
-          break;
-      }
-      draw(Math.sign(delta));
+    if (!isAdjusting) {
+      return;
     }
+    const x = getEventX(e);
+    const delta = (x - prevX) / chartWidth;
+    prevX = x;
+    if (!delta) {
+      return;
+    }
+    const nextStart = $.start + delta;
+    const nextEnd = $.end + delta;
+    switch (eventType) {
+      case 'start':
+        if ($.end - nextStart >= MAX_ZOOM) {
+          $.start = limit(nextStart, 0, 1);
+        }
+        break;
+      case 'end':
+        if (nextEnd - $.start >= MAX_ZOOM) {
+          $.end = limit(nextEnd, 0, 1);
+        }
+        break;
+      case 'both':
+        if (nextEnd <= 1) {
+          $.start = limit(nextStart, 0, 1);
+        }
+        if (nextStart >= 0) {
+          $.end = limit(nextEnd, 0, 1);
+        }
+        break;
+    }
+    draw(Math.sign(delta));
   }
 
   function afterAdjust(e) {
-    $.isAdjusting = false;
+    isAdjusting = false;
   }
 
   function toggleSwitch(i) {
@@ -207,7 +213,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
   function showDetailed(e) {
     // set on dom inserted, reset on resize
     // grab position 0..1 from eventX
-    const posX = Math.floor((getEventX(e) - $.chartOffsetX) / $.chartWidth * $.xCount);
+    const posX = Math.floor(((getEventX(e) - chartOffsetX) / chartWidth) * $.xCount);
     // console.log(posX);
     // create line over svg, create crossing rounds for each line
 
@@ -362,7 +368,7 @@ function ctt(fn, msg, count = 1) {
 /* USERCODE */
 
 const app = document.getElementById('chart-app');
-chart_data.slice(0,1).forEach(data => {
+chart_data.slice(0, 1).forEach(data => {
   var holder = document.createElement('div');
 
   console.time('creating');

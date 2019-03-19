@@ -3,21 +3,27 @@
 - [ ] ~~switch can be template~~
 - [x] move
 - [x] check chart width with chart ragne width
-- [ ] themes: handle chart colors with rgb function
 - [x] bind listeners once, set flag is adjusting
 - [x] zoom
 - [x] deal with symbol id
 - [x] scale zoom Y to fit
 - [x] preview shows from min to max
 - [x] lens shows from 0 to max
-- [ ] lens check edge maximum?
 - [x] path animations
 - [x] restrain max zoom
-- [ ] show detailed: Insert each chart in element. Listen to mutation observer on this element and callback on insert.
+- [x] show detailed: Insert each chart in element. Listen to mutation observer on this element and callback on insert.
+
+# Features
+- [ ] themes switching below all charts. handle chart colors with rgb function
+- [ ] detailed view of chart point
 - [ ] legends
 - [ ] legends animation
+
+# Optimizing
+- [ ] move auxiliary data from options keys to variables for better minification
+- [ ] lens check edge maximum?
 - [ ] fetch data asynchronously
-- [ ] optimize redrawing checking is delta changed
+- [x] optimize redrawing checking is delta changed
 - [ ] optimize redrawing with requestAnimationFrame
 - [ ] minimize js
 
