@@ -14,9 +14,12 @@
 - [x] show detailed: Insert each chart in element. Listen to mutation observer on this element and callback on insert.
 
 # Features
-- [ ] !legends 
+- [x] Legends Y
+- [ ] Legends X
 - [x] themes switching below all charts. handle chart colors with rgb function
-- [ ] !detailed view of chart point
+- [x] detailed line
+- [ ] detailed dots
+- [ ] detailed tooltip
 - [x] debounce legends animation 
 
 # Animations
@@ -29,8 +32,8 @@
 - [x] calculate range with left + width, not left..right
 - [x] optimize redrawing checking is delta changed
 - [ ] lens check edge maximum?
-- [ ] fetch data asynchronously
-- [ ] optimize redrawing with requestAnimationFrame
+- [x] fetch data asynchronously
+- [ ] ~~optimize redrawing with requestAnimationFrame~~
 - [ ] minimize js
 
 # CSS

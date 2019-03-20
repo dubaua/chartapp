@@ -11,7 +11,7 @@ let currentIndex = 1;
 
 function createChart({ columns, types, names, colors }, parentElement) {
   let xAxis = [];
-  let xAxisLength = [];
+  let xAxisLength = 0;
   let yAxis = [];
   let width = INITIAL_ZOOM;
   let start = 1 - width;
@@ -53,13 +53,16 @@ function createChart({ columns, types, names, colors }, parentElement) {
     return xAxisLength * (start + width);
   }
 
-  // getters
+  function getViewBoxXRange() {
+    return getEndIndex() - getStartIndex();
+  }
+
   function activeYs() {
     return yAxis.filter(line => line.a);
   }
 
   function selectedY() {
-    return [].concat(...activeYs().map(line => line.d.slice(getStartIndex(), getEndIndex())));
+    return [].concat(...activeYs().map(line => line.d.slice(Math.ceil(getStartIndex()), Math.ceil(getEndIndex()))));
   }
 
   function maxActiveY() {
@@ -260,12 +263,15 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function showDetailed(e) {
-    // set on dom inserted, reset on resize
-    // grab position 0..1 from eventX
-    // const posX = Math.floor(((getEventX(e) - chartOffsetX) / chartWidth) * xAxisLength);
-    // console.log(posX);
-    // create line over svg, create crossing rounds for each line
-    // refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
+    const lensX = limit((getEventX(e) - chartOffsetX) / chartWidth, 0, 1);
+    const postition = Math.round(getViewBoxXRange() * lensX)
+    const offset = getStartIndex();
+    const x = (postition - (offset % 1)).toFixed(2);
+    refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
+    const i = Math.floor(postition + offset);
+    yAxis.forEach(({ d }) => {
+      console.log(d[i]);
+    });
     // show lens line over svg, show rounds, grab data
     // show data
   }
@@ -284,10 +290,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function drawCharts() {
-    const startIndex = getStartIndex();
-    const viewBoxX = getEndIndex() - startIndex;
-    refs.lensSvg.setAttribute('viewBox', `0 0 ${viewBoxX} ${maxY}`);
-    refs.lensUse.setAttribute('x', -startIndex);
+    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
+    refs.lensUse.setAttribute('x', -getStartIndex().toFixed(2));
     refs.lensUse.style.transform = `scale(1, ${maxY / maxSelectedY()})`;
   }
 
@@ -312,6 +316,11 @@ function createChart({ columns, types, names, colors }, parentElement) {
     drawLinesAndSwitches();
     drawPreview();
     drawCharts();
+    document.addEventListener('mousemove', adjust, false);
+    document.addEventListener('touchmove', adjust, false);
+    document.addEventListener('mouseup', afterAdjust, false);
+    document.addEventListener('touchend', afterAdjust, false);
+    window.addEventListener('resize', setChartWidthAndOffset, false);
   }
 
   const observer = new MutationObserver(mutationCallback);
@@ -326,12 +335,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   observer.observe(parentElement, { childList: true });
-
-  document.addEventListener('mousemove', adjust, false);
-  document.addEventListener('touchmove', adjust, false);
-  document.addEventListener('mouseup', afterAdjust, false);
-  document.addEventListener('touchend', afterAdjust, false);
-  window.addEventListener('resize', setChartWidthAndOffset, false);
 
   currentIndex++;
 
@@ -429,10 +432,6 @@ function debounce(fn, delay) {
       fn.apply(null, args);
     }, delay);
   };
-}
-
-function round(value) {
-  return ((value * 100) | 0) * 0.01;
 }
 
 function getDateString(date) {

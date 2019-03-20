@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "parcel build index.js",
+    "build": "parcel build index.html",
     "serve": "parcel index.html --port 8080 --open"
   },
   "devDependencies": {
