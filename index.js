@@ -2,6 +2,11 @@
 const MAX_ZOOM = 0.05;
 const INITIAL_ZOOM = 0.15;
 const LEGEND_SIZE_Y = 6;
+const MODES = {
+  day: 'Switch to Night Mode',
+  night: 'Switch to Day Mode',
+};
+
 let currentIndex = 1;
 
 function createChart({ columns, types, names, colors }, parentElement) {
@@ -159,7 +164,10 @@ function createChart({ columns, types, names, colors }, parentElement) {
         l: { click: toggleSwitch(yAxis[i]) },
         r: bindReference(yAxis[i], 'switcher'),
       },
-      [['span.switcher__checkbox.muting', { s: { backgroundColor: c } }], ['span.switcher__label', { d: { textContent: n } }]]
+      [
+        ['span.switcher__checkbox.muting', { s: { backgroundColor: c } }],
+        ['span.switcher__label', { d: { textContent: n } }],
+      ]
     );
   }
 
@@ -444,28 +452,31 @@ function ctt(fn, msg, count = 1) {
 
 /* USERCODE */
 
-const app = document.getElementById('chart-app');
-chart_data.slice(0, 1).forEach(data => {
-  var holder = document.createElement('div');
+const body = document.body;
 
-  console.time('creating');
-  var chart = createChart(data, holder);
-  console.timeEnd('creating');
-
-  app.appendChild(holder);
-  console.log(chart);
-});
-
-const MODES = {
-  day: 'Switch to Night Mode',
-  night: 'Switch to Day Mode',
-}
-
-function switchDayNight() {
-  const isNight = modeSwitchButton.textContent === MODES.night;
-  modeSwitchButton.textContent = isNight ? MODES.day : MODES.night;
-  toggleClass(document.documentElement, !isNight, 'night-mode');
-}
-
-const modeSwitchButton = create('button.mode.muting', { d: {textContent: MODES.day }, l: {click: switchDayNight}});
-app.appendChild(modeSwitchButton);
+fetch('/chart_data.json')
+  .then(response => response.json())
+  .then(charts =>
+    charts.slice(0, 1).forEach(data => {
+      const holder = create('div.holder');
+      console.time('creating');
+      createChart(data, holder);
+      console.timeEnd('creating');
+      body.appendChild(holder);
+    })
+  )
+  .then(() => {
+    body.appendChild(
+      create('button.mode.muting', {
+        d: { textContent: MODES.day },
+        l: {
+          click: function(e) {
+            const el = e.target;
+            const isNight = el.textContent === MODES.night;
+            el.textContent = isNight ? MODES.day : MODES.night;
+            toggleClass(document.documentElement, !isNight, 'night-mode');
+          },
+        },
+      })
+    );
+  });
