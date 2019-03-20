@@ -2,12 +2,12 @@
 const MAX_ZOOM = 0.05;
 const INITIAL_ZOOM = 0.15;
 const LEGEND_SIZE_Y = 6;
-const MODES = {
+const MODE_NAMES = {
   day: 'Switch to Night Mode',
   night: 'Switch to Day Mode',
 };
 
-let currentIndex = 1;
+let currentId = 1;
 
 function createChart({ columns, types, names, colors }, parentElement) {
   let xAxis = [];
@@ -23,6 +23,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
   let isAdjusting = false;
   let eventType = '';
   let refs = {};
+  let zoomedIndex = 0;
 
   for (const key in types) {
     switch (types[key]) {
@@ -57,24 +58,34 @@ function createChart({ columns, types, names, colors }, parentElement) {
     return getEndIndex() - getStartIndex();
   }
 
-  function activeYs() {
+  function getActiveYs() {
     return yAxis.filter(line => line.a);
   }
 
-  function selectedY() {
-    return [].concat(...activeYs().map(line => line.d.slice(Math.ceil(getStartIndex()), Math.ceil(getEndIndex()))));
+  function getSelectedY() {
+    return [].concat(...getActiveYs().map(line => line.d.slice(Math.ceil(getStartIndex()), Math.ceil(getEndIndex()))));
   }
 
-  function maxActiveY() {
-    return Math.max(...[].concat(...activeYs().map(line => line.d)));
+  function getMaxActiveY() {
+    return Math.max(...[].concat(...getActiveYs().map(line => line.d)));
   }
 
-  function maxSelectedY() {
-    return Math.max(...selectedY());
+  function getMaxSelectedY() {
+    return Math.max(...getSelectedY());
+  }
+
+  function getPreviewScale() {
+    return maxY / getMaxActiveY();
+    return 1;
+  }
+
+  function getLensScale() {
+    return maxY / getMaxSelectedY();
+    return 1;
   }
 
   function getLedendY(i) {
-    return Math.floor(maxSelectedY() / LEGEND_SIZE_Y) * i;
+    return Math.floor(getMaxSelectedY() / LEGEND_SIZE_Y) * i;
   }
 
   // create DOM with hyperscript
@@ -103,8 +114,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
                 r: bindReference(refs, 'lensSvg'),
               },
               [
-                ['symbol.chart__symbol', { a: { id: `chart-${currentIndex}` } }, yAxis.map(createPath)],
-                ['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindReference(refs, 'lensUse') }],
+                ['symbol.chart__symbol', { a: { id: `chart-${currentId}` } }, yAxis.map(createPath)],
+                ['use', { a: { 'xlink:href': `#chart-${currentId}` }, r: bindReference(refs, 'lensUse') }],
                 [
                   'path.chart__zoom',
                   {
@@ -112,6 +123,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
                     r: bindReference(refs, 'lensZoom'),
                   },
                 ],
+                ...yAxis.map(createDot(true)),
+                ...yAxis.map(createDot(false)),
               ],
             ],
           ],
@@ -132,7 +145,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
               preserveAspectRatio: 'none',
             },
           },
-          [['use', { a: { 'xlink:href': `#chart-${currentIndex}` }, r: bindReference(refs, 'previewUse') }]],
+          [['use', { a: { 'xlink:href': `#chart-${currentId}` }, r: bindReference(refs, 'previewUse') }]],
         ],
         [
           'div.chart__range',
@@ -172,6 +185,20 @@ function createChart({ columns, types, names, colors }, parentElement) {
         ['span.switcher__label', { d: { textContent: n } }],
       ]
     );
+  }
+
+  function createDot(flag) {
+    return function({ c }, i) {
+      return create(`path.fade-out.chart__${flag ? 'dot' : 'pin'}`, {
+        a: {
+          stroke: flag ? c : null,
+          fill: 'none',
+          'vector-effect': 'non-scaling-stroke',
+          d: 'M0 0L0 0.01',
+        },
+        r: bindReference(yAxis[i], flag ? 'dot' : 'pin'),
+      });
+    }
   }
 
   function createLegendY() {
@@ -264,35 +291,43 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function showDetailed(e) {
     const lensX = limit((getEventX(e) - chartOffsetX) / chartWidth, 0, 1);
-    const postition = Math.round(getViewBoxXRange() * lensX)
+    const postition = Math.round(getViewBoxXRange() * lensX);
     const offset = getStartIndex();
     const x = (postition - (offset % 1)).toFixed(2);
-    refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
-    const i = Math.floor(postition + offset);
-    yAxis.forEach(({ d }) => {
-      console.log(d[i]);
-    });
+    const newZoomedIndex = Math.floor(postition + offset);
+    if (zoomedIndex !== newZoomedIndex) {
+      zoomedIndex = newZoomedIndex;
+      refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
+      yAxis.forEach(({ d, dot, pin }) => {
+        const y = (maxY - d[zoomedIndex]) / getPreviewScale();
+        const dd = `M${x} ${y}L${x} ${y + 0.01}`;
+        dot.setAttribute('d', dd);
+        pin.setAttribute('d', dd);
+      });
+    }
     // show lens line over svg, show rounds, grab data
     // show data
   }
 
   function drawLinesAndSwitches() {
-    yAxis.forEach(({ switcher, a, path }) => {
+    yAxis.forEach(({ switcher, a, path, dot, pin }) => {
       toggleClass(switcher, a, 'active');
       toggleClass(path, a, 'active');
+      toggleClass(dot, a, 'active');
+      toggleClass(pin, a, 'active');
     });
   }
 
   function drawPreview() {
     refs.rangeEl.style.left = `${start * 100}%`;
     refs.rangeEl.style.width = `${width * 100}%`;
-    refs.previewUse.style.transform = `scale(1, ${maxY / maxActiveY()})`;
+    refs.previewUse.style.transform = `scale(1, ${getPreviewScale().toFixed(2)})`;
   }
 
   function drawCharts() {
     refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
     refs.lensUse.setAttribute('x', -getStartIndex().toFixed(2));
-    refs.lensUse.style.transform = `scale(1, ${maxY / maxSelectedY()})`;
+    refs.lensUse.style.transform = `scale(1, ${getLensScale().toFixed(2)})`;
   }
 
   let drawLegend = debounce(function(param) {
@@ -336,7 +371,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   observer.observe(parentElement, { childList: true });
 
-  currentIndex++;
+  currentId++;
 
   parentElement.appendChild(chartElement);
   return chartElement;
@@ -363,10 +398,11 @@ function create(t, { s, l, a, r, d } = {}, h) {
   // set attributes by key
   if (a) {
     for (const k in a) {
+      var attr = a[k];
       if (k === 'xlink:href') {
-        e.setAttributeNS('http://www.w3.org/1999/xlink', k, a[k]);
-      } else {
-        e.setAttribute(k, a[k]);
+        e.setAttributeNS('http://www.w3.org/1999/xlink', k, attr);
+      } else if (attr) {
+        e.setAttribute(k, attr);
       }
     }
   }
@@ -467,12 +503,12 @@ fetch('/chart_data.json')
   .then(() => {
     body.appendChild(
       create('button.mode.muting', {
-        d: { textContent: MODES.day },
+        d: { textContent: MODE_NAMES.day },
         l: {
           click: function(e) {
             const el = e.target;
-            const isNight = el.textContent === MODES.night;
-            el.textContent = isNight ? MODES.day : MODES.night;
+            const isNight = el.textContent === MODE_NAMES.night;
+            el.textContent = isNight ? MODE_NAMES.day : MODE_NAMES.night;
             toggleClass(document.documentElement, !isNight, 'night-mode');
           },
         },

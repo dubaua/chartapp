@@ -2,8 +2,7 @@
   --line-width: 1.5px;
   --spacing: 18px;
   --ease-in-sine: cubic-bezier(0.47, 0, 0.75, 0.72);
-  --transition-duration: 0.22s;
-  --transition-duration--short: 0.1s;
+  --transition-duration: 0.1s;
   --color-background: white;
   --color-frame--hover: rgba(9, 114, 188, 0.11);
   --color-frame: rgba(9, 114, 188, 0.14);
@@ -32,7 +31,7 @@ body {
 
 * {
   transition-property: background, color, border-color, box-shadow;
-  transition-duration: var(--transition-duration--short);
+  transition-duration: var(--transition-duration);
   transition-timing-function: var(--ease-in-sine);
 }
 
@@ -60,7 +59,7 @@ body {
 }
 
 .chart use {
-  transition: transform var(--transition-duration--short) var(--ease-in-sine);
+  transition: transform var(--transition-duration) var(--ease-in-sine);
   transform-origin: center bottom;
 }
 
@@ -76,6 +75,15 @@ body {
 .chart__zoom {
   stroke: var(--color-line);
   stroke-width: 1;
+}
+
+.chart__dot {
+  stroke-width: 12;
+}
+
+.chart__pin {
+  stroke-width: 6;
+  stroke: var(--color-background);
 }
 
 .chart__legend-y {
