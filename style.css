@@ -1,10 +1,43 @@
+:root {
+  --line-width: 1.5px;
+  --spacing: 18px;
+  --ease-in-sine: cubic-bezier(0.47, 0, 0.75, 0.72);
+  --transition-duration: 0.22s;
+  --transition-duration--short: 0.1s;
+  --color-background: white;
+  --color-frame--hover: rgba(9, 114, 188, 0.11);
+  --color-frame: rgba(9, 114, 188, 0.14);
+  --color-line: rgba(88, 151, 196, 0.11);
+  --color-preview-mute:rgba(245, 249, 251, 0.75);
+  --color-text:#43484b;
+  --color-text--muted:#96a2aa;
+}
+
+.night-mode {
+  --color-background: #242f3e;
+  --color-frame--hover: rgba(163, 211, 255, 0.18);
+  --color-frame: rgba(163, 211, 255, 0.23);
+  --color-line: rgba(163, 211, 255, 0.14);
+  --color-preview-mute:rgba(29, 41, 56, 0.7);
+  --color-text:#e8ecee;
+  --color-text--muted:#546778;
+}
+
 body {
   margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
   font: 16px/1 'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
 }
 
+* {
+  transition-property: background, color, border-color, box-shadow;
+  transition-duration: var(--transition-duration--short);
+  transition-timing-function: var(--ease-in-sine);
+}
+
 .chart {
-  margin: 18px;
+  margin: var(--spacing);
 }
 
 .chart__body {
@@ -14,8 +47,8 @@ body {
 
 .chart__lens {
   overflow: hidden;
-  margin: -1.5px -18px;
-  padding: 1.5px 18px;
+  margin: calc(var(--line-width) * -1) calc(var(--spacing) * -1);
+  padding: var(--line-width) var(--spacing);
   line-height: 0;
 }
 
@@ -27,12 +60,12 @@ body {
 }
 
 .chart use {
-  transition: transform 0.1s cubic-bezier(0.47, 0, 0.75, 0.72);
+  transition: transform var(--transition-duration--short) var(--ease-in-sine);
   transform-origin: center bottom;
 }
 
 .chart__lens svg {
-  stroke-width: 3;
+  stroke-width: calc(var(--line-width) * 2);
   height: 462px; /* 77 */
 }
 
@@ -56,8 +89,8 @@ body {
   flex-grow: 1;
   align-items: flex-end;
   line-height: 1;
-  border-bottom: 1.5px solid rgba(88, 151, 196, 0.11);
-  color: #96a2aa;
+  border-bottom: var(--line-width) solid var(--color-line);
+  color: var(--color-text--muted);
 }
 
 .chart__legend-x {
@@ -81,18 +114,18 @@ body {
   width: 100%;
   text-align: center;
   white-space: nowrap;
-  color: #96a2aa;
+  color: var(--color-text--muted);
 }
 
 .chart__preview {
   position: relative;
   overflow: hidden;
-  padding: 3px 0;
+  padding: calc(var(--line-width) * 2) 0;
   line-height: 0;
 }
 
 .chart__preview svg {
-  stroke-width: 1.5;
+  stroke-width: var(--line-width);
   height: 50px;
 }
 
@@ -104,30 +137,30 @@ body {
   right: 0;
   display: flex;
   justify-content: space-between;
-  box-shadow: 0 0 0 2000px rgba(245, 249, 251, 0.75);
+  box-shadow: 0 0 0 2000px var(--color-preview-mute);
 }
 
 .chart__handle {
   flex-grow: 1;
-  border-top: 1.5px solid rgba(9, 114, 188, 0.14);
-  border-bottom: 1.5px solid rgba(9, 114, 188, 0.14);
+  border-top: var(--line-width) solid var(--color-frame);
+  border-bottom: var(--line-width) solid var(--color-frame);
+  cursor: pointer;
+}
+
+.chart__adjust {
+  width: calc(var(--line-width) * 4);
+  height: 100%;
+  background-color: var(--color-frame);
   cursor: pointer;
 }
 
 .chart__range:hover .chart__handle {
-  border-color: rgba(9, 114, 188, 0.11);
-}
-
-.chart__adjust {
-  width: 6px;
-  height: 100%;
-  background-color: rgba(9, 114, 188, 0.14);
-  cursor: pointer;
+  border-color: var(--color-frame--hover);
 }
 
 .chart__range:hover .chart__adjust,
 .chart__adjust:hover {
-  background-color: rgba(9, 114, 188, 0.11);
+  background-color: var(--color-frame--hover);
 }
 
 .chart__controls {
@@ -145,8 +178,8 @@ body {
   font-family: inherit;
   font-size: 18px;
   letter-spacing: -0.05em;
-  border: 1.5px solid #e6ecf0;
-  color: #43484b;
+  border: var(--line-width) solid var(--color-line);
+  color: var(--color-text);
   padding: 9px;
   border-radius: 25px;
   background: none;
@@ -154,7 +187,6 @@ body {
 
 .switcher:focus {
   outline: none;
-  /* border-color: #008deb; */
 }
 
 .switcher__checkbox {
@@ -176,9 +208,9 @@ body {
   left: 2px;
   display: block;
   border-radius: 50%;
-  transition: transform 0.22s cubic-bezier(0.47, 0, 0.75, 0.72);
+  transition: transform var(--transition-duration) var(--ease-in-sine);
   transform: scale(1);
-  background: white;
+  background: var(--color-background);
 }
 
 .switcher.active .switcher__checkbox:after {
@@ -192,9 +224,27 @@ body {
 
 .fade-out {
   opacity: 0;
-  transition: opacity 0.22s cubic-bezier(0.47, 0, 0.75, 0.72);
+  transition: opacity var(--transition-duration) var(--ease-in-sine);
 }
 
 .fade-out.active {
   opacity: 1;
+}
+
+.mode {
+  color: #108be3;
+  background: none;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-size: 25px;
+  padding: 1em;
+}
+
+.mode:focus {
+  outline: none;
+}
+
+.night-mode .muting {
+  filter: saturate(70%) brightness(115%);
 }

@@ -15,33 +15,32 @@
 
 # Features
 - [ ] !legends 
-- [ ] !themes switching below all charts. handle chart colors with rgb function
+- [x] themes switching below all charts. handle chart colors with rgb function
 - [ ] !detailed view of chart point
 - [x] debounce legends animation 
+
+# Animations
+- [ ] Legend Y
+- [ ] Legend X
 
 # Optimizing
 - [x] move auxiliary data from options keys to variables for better minification
 - [x] reduce y key size
+- [x] calculate range with left + width, not left..right
+- [x] optimize redrawing checking is delta changed
 - [ ] lens check edge maximum?
 - [ ] fetch data asynchronously
-- [x] optimize redrawing checking is delta changed
 - [ ] optimize redrawing with requestAnimationFrame
 - [ ] minimize js
-- [x] calculate range with left + width, not left..right
 
 # CSS
 - [x] hide overflow y
-- [ ] try variables
+- [x] try variables
 - [ ] !optimize css
 - [ ] adopt for small screens
 
 # Bugs
 - [x] dragging left-right fast causing expanging range
 
-# Flow
-
-immediately show controls moving: switchers and range. Lines animates very fast.
-
-chart lens animates smoothy after changing controls
-
-legends animates after chart lens animation
+# Canvas
+try canvas if time isn't over

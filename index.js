@@ -86,7 +86,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
           },
           [
             [
-              'svg',
+              'svg.muting',
               {
                 a: {
                   viewBox: `0 0 ${xAxisLength} ${maxY}`,
@@ -117,7 +117,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
       { r: bindReference(refs, 'previewEl') },
       [
         [
-          'svg',
+          'svg.muting',
           {
             a: {
               viewBox: `0 0 ${xAxisLength} ${maxY - minY}`,
@@ -159,7 +159,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
         l: { click: toggleSwitch(yAxis[i]) },
         r: bindReference(yAxis[i], 'switcher'),
       },
-      [['span.switcher__checkbox', { s: { backgroundColor: c } }], ['span.switcher__label', { d: { textContent: n } }]]
+      [['span.switcher__checkbox.muting', { s: { backgroundColor: c } }], ['span.switcher__label', { d: { textContent: n } }]]
     );
   }
 
@@ -455,3 +455,17 @@ chart_data.slice(0, 1).forEach(data => {
   app.appendChild(holder);
   console.log(chart);
 });
+
+const MODES = {
+  day: 'Switch to Night Mode',
+  night: 'Switch to Day Mode',
+}
+
+function switchDayNight() {
+  const isNight = modeSwitchButton.textContent === MODES.night;
+  modeSwitchButton.textContent = isNight ? MODES.day : MODES.night;
+  toggleClass(document.documentElement, !isNight, 'night-mode');
+}
+
+const modeSwitchButton = create('button.mode.muting', { d: {textContent: MODES.day }, l: {click: switchDayNight}});
+app.appendChild(modeSwitchButton);
