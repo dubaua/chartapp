@@ -8,8 +8,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
   let xAxis = [];
   let xAxisLength = [];
   let yAxis = [];
-  let start = 1 - INITIAL_ZOOM;
-  let end = 1;
+  let width = INITIAL_ZOOM;
+  let start = 1 - width;
   let maxY = 0;
   let minY = 0;
   let chartWidth = 0;
@@ -41,11 +41,11 @@ function createChart({ columns, types, names, colors }, parentElement) {
   minY = Math.min(...allY);
 
   function getStartIndex() {
-    return Math.floor(xAxisLength * start);
+    return xAxisLength * start;
   }
 
   function getEndIndex() {
-    return Math.ceil(xAxisLength * end);
+    return xAxisLength * (start + width);
   }
 
   // getters
@@ -131,8 +131,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
           { r: bindReference(refs, 'rangeEl') },
           [
             ['div.chart__adjust', { l: { mousedown: beforeAdjust('start'), touchstart: beforeAdjust('start') } }],
-            ['div.chart__handle', { l: { mousedown: beforeAdjust('both'), touchstart: beforeAdjust('both') } }],
-            ['div.chart__adjust', { l: { mousedown: beforeAdjust('end'), touchstart: beforeAdjust('end') } }],
+            ['div.chart__handle', { l: { mousedown: beforeAdjust('move'), touchstart: beforeAdjust('move') } }],
+            ['div.chart__adjust', { l: { mousedown: beforeAdjust('width'), touchstart: beforeAdjust('width') } }],
           ],
         ],
       ],
@@ -211,30 +211,29 @@ function createChart({ columns, types, names, colors }, parentElement) {
       return;
     }
     const nextStart = start + delta;
-    const nextEnd = end + delta;
+    let nextWidth = width + delta;
     switch (eventType) {
       case 'start':
-        if (end - nextStart >= MAX_ZOOM) {
-          start = limit(nextStart, 0, 1);
-        }
-        break;
-      case 'end':
-        if (nextEnd - start >= MAX_ZOOM) {
-          end = limit(nextEnd, 0, 1);
-        }
-        break;
-      case 'both':
-        if (nextEnd <= 1) {
-          start = limit(nextStart, 0, 1);
-        }
+        nextWidth = width - delta;
         if (nextStart >= 0) {
-          end = limit(nextEnd, 0, 1);
+          width = limit(nextWidth, MAX_ZOOM, 1);
+          start = limit(nextStart, 0, 1 - MAX_ZOOM);
+        }
+        break;
+      case 'width':
+        if (nextWidth + start <= 1) {
+          width = limit(nextWidth, MAX_ZOOM, 1);
+        }
+        break;
+      case 'move':
+        if (nextStart + width <= 1) {
+          start = limit(nextStart, 0, 1);
         }
         break;
     }
     drawPreview();
     drawLegend(Math.sign(delta));
-    animate(drawCharts, easeInSine, 1000);
+    drawCharts();
   }
 
   function afterAdjust(e) {
@@ -243,11 +242,12 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function toggleSwitch(line) {
     return function() {
+      const direction = line.a ? 1 : -1;
       line.a = !line.a;
       drawLinesAndSwitches();
       drawPreview();
       drawCharts();
-      drawLegend();
+      drawLegend(direction);
     };
   }
 
@@ -271,12 +271,11 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function drawPreview() {
     refs.rangeEl.style.left = `${start * 100}%`;
-    refs.rangeEl.style.right = `${(1 - end) * 100}%`;
+    refs.rangeEl.style.width = `${width * 100}%`;
     refs.previewUse.style.transform = `scale(1, ${maxY / maxActiveY()})`;
   }
 
-  function drawCharts(progress = 1) {
-    // here we need to animate from start to end, not from 0 to end.
+  function drawCharts() {
     const startIndex = getStartIndex();
     const viewBoxX = getEndIndex() - startIndex;
     refs.lensSvg.setAttribute('viewBox', `0 0 ${viewBoxX} ${maxY}`);
@@ -300,12 +299,19 @@ function createChart({ columns, types, names, colors }, parentElement) {
   //   chartElement.remove();
   // }
 
+  function init() {
+    setChartWidthAndOffset();
+    drawLinesAndSwitches();
+    drawPreview();
+    drawCharts();
+  }
+
   const observer = new MutationObserver(mutationCallback);
 
   function mutationCallback(mutationsList, observer) {
     for (var mutation of mutationsList) {
       if (mutation.type == 'childList') {
-        setChartWidthAndOffset();
+        init();
         observer.disconnect();
       }
     }
@@ -318,10 +324,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
   document.addEventListener('mouseup', afterAdjust, false);
   document.addEventListener('touchend', afterAdjust, false);
   window.addEventListener('resize', setChartWidthAndOffset, false);
-
-  drawLinesAndSwitches();
-  drawPreview();
-  drawCharts();
 
   currentIndex++;
 
@@ -429,20 +431,6 @@ function getDateString(date) {
   const [weekday, month, day] = new Date(date).toString().split(' ');
   return month + ' ' + day.replace(/^0/, '');
 }
-
-function animate(draw, easing, duration) {
-  var start = performance.now();
-  requestAnimationFrame(function animate(time) {
-    var timeFraction = limit((time - start) / duration, 0, 1);
-    var progress = easing(timeFraction);
-    draw(progress);
-    if (timeFraction < 1) {
-      requestAnimationFrame(animate);
-    }
-  });
-}
-
-function easeInSine (t) { return -Math.cos(t * Math.PI / 2) + 1; }
 
 /* PERFORMANCE TESTING */
 

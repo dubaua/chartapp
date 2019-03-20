@@ -27,7 +27,7 @@
 - [x] optimize redrawing checking is delta changed
 - [ ] optimize redrawing with requestAnimationFrame
 - [ ] minimize js
-- [ ] calculate range with left + width, not left..right
+- [x] calculate range with left + width, not left..right
 
 # CSS
 - [x] hide overflow y
@@ -36,7 +36,7 @@
 - [ ] adopt for small screens
 
 # Bugs
-- [ ] dragging left-right fast causing expanging range
+- [x] dragging left-right fast causing expanging range
 
 # Flow
 
