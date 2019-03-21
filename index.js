@@ -133,11 +133,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
                             r: bindReference(refs, 'lensZoom'),
                           },
                         ],
-                        ...[].concat(
-                          ...yAxis.map(createPath('lensPath')),
-                          ...yAxis.map(createDot(true)),
-                          ...yAxis.map(createDot(false))
-                        ),
+                        ...[].concat(...yAxis.map(createPathAndDots('lensPath')))
                       ],
                     ],
                   ],
@@ -217,6 +213,16 @@ function createChart({ columns, types, names, colors }, parentElement) {
         },
         r: bindReference(yAxis[i], flag ? 'dot' : 'pin'),
       });
+    };
+  }
+
+  function createPathAndDots(referenceKey) {
+    return function(с, i) {
+      return [
+        createPath(referenceKey)(с, i),
+        createDot(true)(с, i),
+        createDot(false)(с, i)
+      ]
     };
   }
 

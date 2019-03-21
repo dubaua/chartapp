@@ -45,7 +45,7 @@
 
 # Bugs
 - [x] dragging left-right fast causing expanging range
-- [ ] order of charts and dots: [chart, dot, pin]
+- [x] order of charts and dots: [chart, dot, pin]
 
 # Canvas
 try canvas if time isn't over
