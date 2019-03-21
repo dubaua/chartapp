@@ -41,11 +41,13 @@
 - [x] hide overflow y
 - [x] try variables
 - [ ] !optimize css
-- [ ] adopt for small screens
+- [ ] !adopt for small screens
 
 # Bugs
 - [x] dragging left-right fast causing expanging range
 - [x] order of charts and dots: [chart, dot, pin]
+- [ ] Firefox can't proper calc variable
+- [ ] Firefox can't vector-effect non-scaling-stroke
 
 # Canvas
 - [ ] ~~try canvas if time isn't over~~

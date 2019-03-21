@@ -77,12 +77,10 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function getPreviewScale() {
     return maxY / getMaxActiveY();
-    return 1;
   }
 
   function getLensScale() {
     return maxY / getMaxSelectedY();
-    return 1;
   }
 
   function getLedendY(i) {
