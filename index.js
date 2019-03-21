@@ -522,7 +522,7 @@ const body = document.body;
 fetch('/chart_data.json')
   .then(response => response.json())
   .then(charts =>
-    charts.slice(0, 1).forEach(data => {
+    charts.forEach(data => {
       const holder = create('div.holder');
       console.time('creating');
       createChart(data, holder);
