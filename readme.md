@@ -18,7 +18,7 @@
 - [ ] Legends X
 - [x] themes switching below all charts. handle chart colors with rgb function
 - [x] detailed line
-- [ ] detailed dots
+- [x] detailed dots
 - [ ] detailed tooltip
 - [x] debounce legends animation 
 
@@ -35,6 +35,7 @@
 - [x] fetch data asynchronously
 - [ ] ~~optimize redrawing with requestAnimationFrame~~
 - [ ] minimize js
+- [ ] minimize ref keys
 
 # CSS
 - [x] hide overflow y
@@ -44,6 +45,7 @@
 
 # Bugs
 - [x] dragging left-right fast causing expanging range
+- [ ] order of charts and dots: [chart, dot, pin]
 
 # Canvas
 try canvas if time isn't over

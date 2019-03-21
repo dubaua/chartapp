@@ -85,7 +85,11 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function getLedendY(i) {
-    return Math.floor(getMaxSelectedY() / LEGEND_SIZE_Y) * i;
+    const maxSelectedY = getMaxSelectedY();
+    if (maxSelectedY === -Infinity) {
+      return '';
+    }
+    return Math.floor(maxSelectedY / LEGEND_SIZE_Y) * i;
   }
 
   // create DOM with hyperscript
@@ -114,17 +118,30 @@ function createChart({ columns, types, names, colors }, parentElement) {
                 r: bindReference(refs, 'lensSvg'),
               },
               [
-                ['symbol.chart__symbol', { a: { id: `chart-${currentId}` } }, yAxis.map(createPath)],
-                ['use', { a: { 'xlink:href': `#chart-${currentId}` }, r: bindReference(refs, 'lensUse') }],
                 [
-                  'path.chart__zoom',
-                  {
-                    a: { d: `M0 0L0 ${maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
-                    r: bindReference(refs, 'lensZoom'),
-                  },
+                  'g',
+                  { r: bindReference(refs, 'lensTranslateGroup') },
+                  [
+                    [
+                      'g.chart__group',
+                      { r: bindReference(refs, 'lensScaleGroup') },
+                      [
+                        [
+                          'path.chart__zoom',
+                          {
+                            a: { d: `M0 0L0 ${maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
+                            r: bindReference(refs, 'lensZoom'),
+                          },
+                        ],
+                        ...[].concat(
+                          ...yAxis.map(createPath('lensPath')),
+                          ...yAxis.map(createDot(true)),
+                          ...yAxis.map(createDot(false))
+                        ),
+                      ],
+                    ],
+                  ],
                 ],
-                ...yAxis.map(createDot(true)),
-                ...yAxis.map(createDot(false)),
               ],
             ],
           ],
@@ -145,7 +162,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
               preserveAspectRatio: 'none',
             },
           },
-          [['use', { a: { 'xlink:href': `#chart-${currentId}` }, r: bindReference(refs, 'previewUse') }]],
+          [['g.chart__group', { r: bindReference(refs, 'previewGroup') }, yAxis.map(createPath('previewPath'))]],
         ],
         [
           'div.chart__range',
@@ -161,16 +178,18 @@ function createChart({ columns, types, names, colors }, parentElement) {
     ['div.chart__controls', {}, yAxis.map(createSwitcher)],
   ]);
 
-  function createPath({ d, c }, i) {
-    return create('path.fade-out', {
-      a: {
-        stroke: c,
-        fill: 'none',
-        'vector-effect': 'non-scaling-stroke',
-        d: d.reduce((a, y, x) => (a += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
-      },
-      r: bindReference(yAxis[i], 'path'),
-    });
+  function createPath(referenceKey) {
+    return function({ d, c }, i) {
+      return create('path.fade-out', {
+        a: {
+          stroke: c,
+          fill: 'none',
+          'vector-effect': 'non-scaling-stroke',
+          d: d.reduce((a, y, x) => (a += (x === 0 ? 'M' : 'L') + `${x} ${maxY - y}`), ''),
+        },
+        r: bindReference(yAxis[i], referenceKey),
+      });
+    };
   }
 
   function createSwitcher({ n, c }, i) {
@@ -198,12 +217,11 @@ function createChart({ columns, types, names, colors }, parentElement) {
         },
         r: bindReference(yAxis[i], flag ? 'dot' : 'pin'),
       });
-    }
+    };
   }
 
   function createLegendY() {
     let legend = [];
-    console.log();
     for (let i = 0; i < LEGEND_SIZE_Y; i++) {
       legend.unshift(
         create('div.chart__legend-y-section', {
@@ -274,7 +292,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
     drawCharts();
   }
 
-  function afterAdjust(e) {
+  function afterAdjust() {
     isAdjusting = false;
   }
 
@@ -291,47 +309,41 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function showDetailed(e) {
     const lensX = limit((getEventX(e) - chartOffsetX) / chartWidth, 0, 1);
-    const postition = Math.round(getViewBoxXRange() * lensX);
-    const offset = getStartIndex();
-    const x = (postition - (offset % 1)).toFixed(2);
-    const newZoomedIndex = Math.floor(postition + offset);
-    if (zoomedIndex !== newZoomedIndex) {
-      zoomedIndex = newZoomedIndex;
+    const x = Math.round(getStartIndex() + getViewBoxXRange() * lensX);
+    if (zoomedIndex !== x) {
+      zoomedIndex = x;
       refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
       yAxis.forEach(({ d, dot, pin }) => {
-        const y = (maxY - d[zoomedIndex]) / getPreviewScale();
+        const y = maxY - d[x];
         const dd = `M${x} ${y}L${x} ${y + 0.01}`;
         dot.setAttribute('d', dd);
         pin.setAttribute('d', dd);
       });
     }
-    // show lens line over svg, show rounds, grab data
     // show data
   }
 
   function drawLinesAndSwitches() {
-    yAxis.forEach(({ switcher, a, path, dot, pin }) => {
-      toggleClass(switcher, a, 'active');
-      toggleClass(path, a, 'active');
-      toggleClass(dot, a, 'active');
-      toggleClass(pin, a, 'active');
+    yAxis.forEach(({ a, switcher, lensPath, previewPath, dot, pin }) => {
+      [switcher, lensPath, previewPath, dot, pin].forEach(el => toggleClass(el, a, 'active'));
     });
   }
 
   function drawPreview() {
     refs.rangeEl.style.left = `${start * 100}%`;
     refs.rangeEl.style.width = `${width * 100}%`;
-    refs.previewUse.style.transform = `scale(1, ${getPreviewScale().toFixed(2)})`;
+    refs.previewGroup.style.transform = `scale(1, ${getPreviewScale().toFixed(2)})`;
   }
 
   function drawCharts() {
     refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
-    refs.lensUse.setAttribute('x', -getStartIndex().toFixed(2));
-    refs.lensUse.style.transform = `scale(1, ${getLensScale().toFixed(2)})`;
+    const translate = ((100 / getViewBoxXRange()) * -getStartIndex()).toFixed(2);
+    const scale = getLensScale().toFixed(2);
+    refs.lensScaleGroup.style.transform = `scaleY(${scale})`;
+    refs.lensTranslateGroup.style.transform = `translateX(${translate}%)`;
   }
 
-  let drawLegend = debounce(function(param) {
-    console.log('drawLegend', param);
+  let drawLegend = debounce(function(direction) {
     for (let i = 0; i < LEGEND_SIZE_Y; i++) {
       refs[`legendY${i}`].textContent = getLedendY(i);
     }
@@ -388,7 +400,7 @@ function create(t, { s, l, a, r, d } = {}, h) {
   const [_t, ...c] = t.split('.');
   // create element by tagName
   const e =
-    ['svg', 'path', 'use', 'symbol'].indexOf(_t) > -1
+    ['svg', 'path', 'g'].indexOf(_t) > -1
       ? document.createElementNS('http://www.w3.org/2000/svg', _t)
       : document.createElement(_t);
   // add classes
@@ -399,9 +411,7 @@ function create(t, { s, l, a, r, d } = {}, h) {
   if (a) {
     for (const k in a) {
       var attr = a[k];
-      if (k === 'xlink:href') {
-        e.setAttributeNS('http://www.w3.org/1999/xlink', k, attr);
-      } else if (attr) {
+      if (attr) {
         e.setAttribute(k, attr);
       }
     }

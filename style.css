@@ -1,15 +1,16 @@
 :root {
   --line-width: 1.5px;
+  --dot-radius: 6px;
   --spacing: 18px;
+  --transition-duration: 0.15s;
   --ease-in-sine: cubic-bezier(0.47, 0, 0.75, 0.72);
-  --transition-duration: 0.1s;
   --color-background: white;
   --color-frame--hover: rgba(9, 114, 188, 0.11);
   --color-frame: rgba(9, 114, 188, 0.14);
   --color-line: rgba(88, 151, 196, 0.11);
-  --color-preview-mute:rgba(245, 249, 251, 0.75);
-  --color-text:#43484b;
-  --color-text--muted:#96a2aa;
+  --color-preview-mute: rgba(245, 249, 251, 0.75);
+  --color-text: #43484b;
+  --color-text--muted: #96a2aa;
 }
 
 .night-mode {
@@ -17,22 +18,30 @@
   --color-frame--hover: rgba(163, 211, 255, 0.18);
   --color-frame: rgba(163, 211, 255, 0.23);
   --color-line: rgba(163, 211, 255, 0.14);
-  --color-preview-mute:rgba(29, 41, 56, 0.7);
-  --color-text:#e8ecee;
-  --color-text--muted:#546778;
+  --color-preview-mute: rgba(29, 41, 56, 0.7);
+  --color-text: #e8ecee;
+  --color-text--muted: #546778;
 }
 
 body {
   margin: 0;
-  background: var(--color-background);
+  background-color: var(--color-background);
   color: var(--color-text);
   font: 16px/1 'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
 }
 
 * {
-  transition-property: background, color, border-color, box-shadow;
+  transition-property: background-color, background, border-color, box-shadow, color, opacity, stroke;
   transition-duration: var(--transition-duration);
   transition-timing-function: var(--ease-in-sine);
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+.fade-out.active {
+  opacity: 1;
 }
 
 .chart {
@@ -46,8 +55,8 @@ body {
 
 .chart__lens {
   overflow: hidden;
-  margin: calc(var(--line-width) * -1) calc(var(--spacing) * -1);
-  padding: var(--line-width) var(--spacing);
+  margin: calc(var(--dot-radius) * -1) calc(var(--spacing) * -1);
+  padding: var(--dot-radius) var(--spacing);
   line-height: 0;
 }
 
@@ -58,8 +67,8 @@ body {
   stroke-linejoin: round;
 }
 
-.chart use {
-  transition: transform var(--transition-duration) var(--ease-in-sine);
+.chart__group {
+  transition-property: transform;
   transform-origin: center bottom;
 }
 
@@ -68,21 +77,17 @@ body {
   height: 462px; /* 77 */
 }
 
-.chart__lens symbol {
-  overflow: visible;
-}
-
 .chart__zoom {
   stroke: var(--color-line);
   stroke-width: 1;
 }
 
 .chart__dot {
-  stroke-width: 12;
+  stroke-width: calc(var(--dot-radius) * 2);
 }
 
 .chart__pin {
-  stroke-width: 6;
+  stroke-width: var(--dot-radius);
   stroke: var(--color-background);
 }
 
@@ -223,9 +228,11 @@ body {
   left: 2px;
   display: block;
   border-radius: 50%;
-  transition: transform var(--transition-duration) var(--ease-in-sine);
+  transition-property: transform, background-color;
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--ease-in-sine);
   transform: scale(1);
-  background: var(--color-background);
+  background-color: var(--color-background);
 }
 
 .switcher.active .switcher__checkbox:after {
@@ -235,15 +242,6 @@ body {
 .switcher__label {
   display: block;
   margin: 0 14px;
-}
-
-.fade-out {
-  opacity: 0;
-  transition: opacity var(--transition-duration) var(--ease-in-sine);
-}
-
-.fade-out.active {
-  opacity: 1;
 }
 
 .mode {
