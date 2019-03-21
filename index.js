@@ -340,14 +340,15 @@ function createChart({ columns, types, names, colors }, parentElement) {
   function drawPreview() {
     refs.rangeEl.style.left = `${start.toFixed(4) * 100}%`;
     refs.rangeEl.style.width = `${width.toFixed(4) * 100}%`;
-    refs.previewGroup.style.transform = `scale(1, ${getPreviewScale().toFixed(2)})`;
+    const scale = getPreviewScale().toFixed(2);
+    setTransformScale(refs.previewGroup, scale)
   }
 
   function drawCharts() {
     refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange()} ${maxY}`);
     const translate = -(100 / getViewBoxXRange()) * getStartIndex();
     const scale = getLensScale().toFixed(2);
-    refs.lensScaleGroup.style.transform = `scaleY(${scale})`;
+    setTransformScale(refs.lensScaleGroup, scale)
     refs.lensTranslateGroup.style.transform = `translateX(${translate}%)`;
   }
 
@@ -363,7 +364,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
     refs.legendX.style.width = `${legendXWidth}px`;
     const labelsToSkipDivider = Math.ceil(MIN_LEGEND_X_LABEL_WIDHT_PX / (legendXWidth / xAxisLength));
     refs.legendXLabels.forEach((label, i) => {
-
       toggleClass(label, i % labelsToSkipDivider === 0, 'active')
     });
   }
@@ -505,6 +505,14 @@ function getDateString(date) {
   return month + ' ' + day.replace(/^0/, '');
 }
 
+function setTransformScale(el, scale) {
+  if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+    el.setAttribute('transform', `scale(1, ${scale})`);
+  } else {
+    el.style.transform = `scale(1, ${scale})`;
+  }
+}
+
 /* PERFORMANCE TESTING */
 
 function ctt(fn, msg, count = 1) {
@@ -522,7 +530,7 @@ const body = document.body;
 fetch('/chart_data.json')
   .then(response => response.json())
   .then(charts =>
-    charts.forEach(data => {
+    charts.slice(0,1).forEach(data => {
       const holder = create('div.holder');
       console.time('creating');
       createChart(data, holder);

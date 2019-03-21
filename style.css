@@ -1,7 +1,10 @@
 :root {
+  --preview-stroke-width: 1.5;
+  --detailed-stroke-width: 3;
+  --dot-stroke-width: 12;
+  --pin-stroke-width: 6;
   --line-width: 1.5px;
-  --stroke-width: 1.5;
-  --dot-stroke-width: 6;
+  --dot-width: 6px;
   --spacing: 18px;
   --transition-duration: 0.15s;
   --ease-in-sine: cubic-bezier(0.47, 0, 0.75, 0.72);
@@ -56,9 +59,8 @@ body {
 }
 
 .chart__lens {
-  overflow: hidden;
-  margin: calc(var(--dot-radius) * -1) calc(var(--spacing) * -1) 0;
-  padding: var(--dot-radius) var(--spacing);
+  margin: calc(var(--dot-width) * -1) calc(var(--spacing) * -1) 0;
+  padding: var(--dot-width) var(--spacing);
   line-height: 0;
 }
 
@@ -75,7 +77,7 @@ body {
 }
 
 .chart__lens svg {
-  stroke-width: calc(var(--stroke-width) * 2);
+  stroke-width: var(--detailed-stroke-width, 3);
   height: 462px; /* 77 */
 }
 
@@ -85,11 +87,11 @@ body {
 }
 
 .chart__dot {
-  stroke-width: calc(var(--dot-stroke-width) * 2);
+  stroke-width: var(--dot-stroke-width, 12);
 }
 
 .chart__pin {
-  stroke-width: var(--dot-stroke-width);
+  stroke-width: var(--pin-stroke-width, 6);
   stroke: var(--color-background);
 }
 
@@ -147,7 +149,7 @@ body {
 }
 
 .chart__preview svg {
-  stroke-width: var(--stroke-width);
+  stroke-width: var(--preview-stroke-width);
   height: 50px;
 }
 
@@ -166,7 +168,7 @@ body {
   flex-grow: 1;
   border-top: var(--line-width) solid var(--color-frame);
   border-bottom: var(--line-width) solid var(--color-frame);
-  cursor: pointer;
+  cursor: move;
 }
 
 .chart__adjust {

@@ -27,27 +27,29 @@
 - [x] Legend X
 
 # Optimizing
+- [ ] ~~optimize change range redrawing with requestAnimationFrame~~
 - [x] move auxiliary data from options keys to variables for better minification
 - [x] reduce y key size
 - [x] calculate range with left + width, not left..right
 - [x] optimize redrawing checking is delta changed
 - [ ] lens check edge maximum?
 - [x] fetch data asynchronously
-- [ ] ~~optimize redrawing with requestAnimationFrame~~
 - [ ] minimize js
 - [ ] minimize ref keys
 
 # CSS
+- [ ] adopt for small screens
 - [x] hide overflow y
 - [x] try variables
 - [ ] !optimize css
-- [ ] !adopt for small screens
 
 # Bugs
 - [x] dragging left-right fast causing expanging range
 - [x] order of charts and dots: [chart, dot, pin]
-- [ ] Firefox can't proper calc variable
-- [ ] Firefox can't vector-effect non-scaling-stroke
+- [x] Firefox can't proper calc variable
+- [x] Firefox can't vector-effect non-scaling-stroke
+- [x] Firefox transformY distorts chart
+- [x] Safari doesn't support transform origin, while transform is set as svg attribute
 
 # Canvas
 - [ ] ~~try canvas if time isn't over~~
