@@ -5,8 +5,11 @@
   --pin-stroke-width: 6;
   --line-width: 1.5px;
   --dot-width: 6px;
-  --spacing: 18px;
+  --spacing: 12px;
+  --base-font-size: 16px;
+  --chart-height: 259px;
   --transition-duration: 0.15s;
+  --adjust-width: 6px;
   --ease-in-sine: cubic-bezier(0.47, 0, 0.75, 0.72);
   --color-background: white;
   --color-frame--hover: rgba(9, 114, 188, 0.11);
@@ -15,6 +18,13 @@
   --color-preview-mute: rgba(245, 249, 251, 0.75);
   --color-text: #43484b;
   --color-text--muted: #96a2aa;
+}
+
+@media screen and (min-width: 992px) {
+  :root {
+    --spacing: 18px;
+    --chart-height: 462px;
+  }
 }
 
 .night-mode {
@@ -31,7 +41,9 @@ body {
   margin: 0;
   background-color: var(--color-background);
   color: var(--color-text);
-  font: 16px/1 'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
+  font-family:  'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
+  font-size: var(--base-font-size);
+  line-height: 1;
 }
 
 * {
@@ -60,7 +72,7 @@ body {
 
 .chart__lens {
   margin: calc(var(--dot-width) * -1) calc(var(--spacing) * -1) 0;
-  padding: var(--dot-width) var(--spacing);
+  padding: var(--dot-width) var(--spacing) 0;
   line-height: 0;
 }
 
@@ -78,7 +90,7 @@ body {
 
 .chart__lens svg {
   stroke-width: var(--detailed-stroke-width, 3);
-  height: 462px; /* 77 */
+  height: var(--chart-height, 462px);
 }
 
 .chart__zoom {
@@ -169,21 +181,26 @@ body {
   border-top: var(--line-width) solid var(--color-frame);
   border-bottom: var(--line-width) solid var(--color-frame);
   cursor: move;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .chart__adjust {
-  width: calc(var(--line-width) * 4);
+  width: var(--adjust-width);
   height: 100%;
   background-color: var(--color-frame);
   cursor: pointer;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .chart__range:hover .chart__handle {
   border-color: var(--color-frame--hover);
 }
 
-.chart__range:hover .chart__adjust,
-.chart__adjust:hover {
+.chart__range:hover .chart__adjust, .chart__adjust:hover {
   background-color: var(--color-frame--hover);
 }
 
@@ -191,7 +208,7 @@ body {
   margin-top: 22px;
 }
 
-.chart__switcher + .chart__switcher {
+.chart__switcher+.chart__switcher {
   margin-left: 22px;
 }
 
@@ -200,7 +217,7 @@ body {
   align-items: center;
   cursor: pointer;
   font-family: inherit;
-  font-size: 18px;
+  font-size: 1.125em;
   letter-spacing: -0.05em;
   border: var(--line-width) solid var(--color-line);
   color: var(--color-text);
@@ -254,7 +271,7 @@ body {
   width: 100%;
   border: none;
   cursor: pointer;
-  font-size: 25px;
+  font-size: 1.5em;
   padding: 1em;
 }
 

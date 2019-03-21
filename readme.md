@@ -27,7 +27,7 @@
 - [x] Legend X
 
 # Optimizing
-- [ ] ~~optimize change range redrawing with requestAnimationFrame~~
+- [x] optimize change range redrawing with requestAnimationFrame
 - [x] move auxiliary data from options keys to variables for better minification
 - [x] reduce y key size
 - [x] calculate range with left + width, not left..right
@@ -38,7 +38,7 @@
 - [ ] minimize ref keys
 
 # CSS
-- [ ] adopt for small screens
+- [x] adopt for small screens
 - [x] hide overflow y
 - [x] try variables
 - [ ] !optimize css

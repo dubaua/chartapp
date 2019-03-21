@@ -6,7 +6,7 @@ const MODE_NAMES = {
   day: 'Switch to Night Mode',
   night: 'Switch to Day Mode',
 };
-const MIN_LEGEND_X_LABEL_WIDHT_PX = 120; 
+const MIN_LEGEND_X_LABEL_WIDHT_PX = 120;
 
 let currentId = 1;
 
@@ -25,6 +25,9 @@ function createChart({ columns, types, names, colors }, parentElement) {
   let eventType = '';
   let refs = {};
   let zoomedIndex = 0;
+
+  let scaleLegendXRAFId = null;
+  let scaleChartsRAFId = null;
 
   for (const key in types) {
     switch (types[key]) {
@@ -142,7 +145,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
           ],
         ],
         ['div.chart__legend-y', {}, [...createLegendY()]],
-        ['div.chart__legend-x', {r: bindReference(refs, 'legendX') }, [...createLegendX()]],
+        ['div.chart__legend-x', { r: bindReference(refs, 'legendX') }, [...createLegendX()]],
       ],
     ],
     [
@@ -246,7 +249,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function onResize() {
     setChartWidthAndOffset();
-    drawLegendX();
+    moveLegendX();
   }
 
   function setChartWidthAndOffset() {
@@ -264,6 +267,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function adjust(e) {
+    e.preventDefault();
     if (!isAdjusting) {
       return;
     }
@@ -275,6 +279,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
     }
     const nextStart = start + delta;
     let nextWidth = width + delta;
+    console.log(eventType);
     switch (eventType) {
       case 'start':
         nextWidth = width - delta;
@@ -294,23 +299,29 @@ function createChart({ columns, types, names, colors }, parentElement) {
         }
         break;
     }
-    drawPreview();
-    drawCharts();
-    drawLegendX();
+    movePreview();
+    moveCharts();
+    moveLegendX();
+    scaleChartsRAFId = requestAnimationFrame(scaleCharts);
+    scaleLegendXRAFId = requestAnimationFrame(scaleLegendX);
     drawLegendY(Math.sign(delta));
   }
 
   function afterAdjust() {
     isAdjusting = false;
+    cancelAnimationFrame(scaleChartsRAFId);
+    cancelAnimationFrame(scaleLegendXRAFId);
   }
 
   function toggleSwitch(line) {
     return function() {
       const direction = line.a ? 1 : -1;
       line.a = !line.a;
-      drawPreview();
+      movePreview();
       drawLinesAndSwitches();
-      drawCharts();
+      scalePreview();
+      moveCharts();
+      scaleCharts();
       drawLegendY(direction);
     };
   }
@@ -337,19 +348,27 @@ function createChart({ columns, types, names, colors }, parentElement) {
     });
   }
 
-  function drawPreview() {
+  function movePreview() {
     refs.rangeEl.style.left = `${start.toFixed(4) * 100}%`;
     refs.rangeEl.style.width = `${width.toFixed(4) * 100}%`;
-    const scale = getPreviewScale().toFixed(2);
-    setTransformScale(refs.previewGroup, scale)
   }
 
-  function drawCharts() {
-    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange()} ${maxY}`);
+  function scalePreview() {
+    const scale = getPreviewScale().toFixed(2);
+    setTransformScale(refs.previewGroup, scale);
+  }
+
+  function moveCharts() {
+    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
     const translate = -(100 / getViewBoxXRange()) * getStartIndex();
-    const scale = getLensScale().toFixed(2);
-    setTransformScale(refs.lensScaleGroup, scale)
     refs.lensTranslateGroup.style.transform = `translateX(${translate}%)`;
+  }
+
+  function scaleCharts() {
+    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
+    const scale = getLensScale().toFixed(2);
+    setTransformScale(refs.lensScaleGroup, scale);
+    scaleChartsRAFId = requestAnimationFrame(scaleCharts);
   }
 
   let drawLegendY = debounce(function(direction) {
@@ -358,14 +377,18 @@ function createChart({ columns, types, names, colors }, parentElement) {
     }
   }, 100);
 
-  function drawLegendX() {
-    const legendXWidth = (chartWidth * xAxisLength / getViewBoxXRange()).toFixed(2);
+  function moveLegendX() {
     refs.legendX.style.transform = `translateX(${-start * 100}%)`;
+  }
+
+  function scaleLegendX() {
+    const legendXWidth = ((chartWidth * xAxisLength) / getViewBoxXRange()).toFixed(2);
     refs.legendX.style.width = `${legendXWidth}px`;
     const labelsToSkipDivider = Math.ceil(MIN_LEGEND_X_LABEL_WIDHT_PX / (legendXWidth / xAxisLength));
     refs.legendXLabels.forEach((label, i) => {
-      toggleClass(label, i % labelsToSkipDivider === 0, 'active')
+      toggleClass(label, i % labelsToSkipDivider === 0, 'active');
     });
+    scaleLegendXRAFId = requestAnimationFrame(scaleLegendX);
   }
 
   // function destroy() {
@@ -374,15 +397,20 @@ function createChart({ columns, types, names, colors }, parentElement) {
   //   document.removeEventListener('mouseup', afterAdjust, false);
   //   document.removeEventListener('touchend', afterAdjust, false);
   //   window.removeEventListener('resize', onResize, false);
+  //   cancelAnimationFrame(scaleChartsRAFId);
+  //   cancelAnimationFrame(scaleLegendXRAFId);
   //   chartElement.remove();
   // }
 
   function init() {
     setChartWidthAndOffset();
-    drawPreview();
+    movePreview();
+    scalePreview();
     drawLinesAndSwitches();
-    drawCharts();
-    drawLegendX();
+    moveCharts();
+    scaleCharts();
+    moveLegendX();
+    scaleLegendX();
     document.addEventListener('mousemove', adjust, false);
     document.addEventListener('touchmove', adjust, false);
     document.addEventListener('mouseup', afterAdjust, false);
@@ -530,7 +558,7 @@ const body = document.body;
 fetch('/chart_data.json')
   .then(response => response.json())
   .then(charts =>
-    charts.slice(0,1).forEach(data => {
+    charts.slice(0, 1).forEach(data => {
       const holder = create('div.holder');
       console.time('creating');
       createChart(data, holder);
