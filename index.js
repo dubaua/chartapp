@@ -1,11 +1,12 @@
 /* CONSTANTS */
 const MAX_ZOOM = 0.05;
 const INITIAL_ZOOM = 0.15;
-const LEGEND_SIZE_Y = 6;
+const LEGEND_Y_LINE_COUNT = 6;
 const MODE_NAMES = {
   day: 'Switch to Night Mode',
   night: 'Switch to Day Mode',
 };
+const MIN_LEGEND_X_LABEL_WIDHT_PX = 120; 
 
 let currentId = 1;
 
@@ -89,7 +90,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
     if (maxSelectedY === -Infinity) {
       return '';
     }
-    return Math.floor(maxSelectedY / LEGEND_SIZE_Y) * i;
+    return Math.floor(maxSelectedY / LEGEND_Y_LINE_COUNT) * i;
   }
 
   // create DOM with hyperscript
@@ -102,8 +103,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
           'div.chart__lens',
           {
             l: {
-              mousemove: showDetailed,
-              touchmove: showDetailed,
+              mousemove: moveLens,
+              touchmove: moveLens,
             },
             r: bindReference(refs, 'lensEl'),
           },
@@ -133,7 +134,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
                             r: bindReference(refs, 'lensZoom'),
                           },
                         ],
-                        ...[].concat(...yAxis.map(createPathAndDots('lensPath')))
+                        ...[].concat(...yAxis.map(createPathAndDots('lensPath'))),
                       ],
                     ],
                   ],
@@ -143,7 +144,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
           ],
         ],
         ['div.chart__legend-y', {}, [...createLegendY()]],
-        ['div.chart__legend-x', {}, [...createLegendX()]],
+        ['div.chart__legend-x', {r: bindReference(refs, 'legendX') }, [...createLegendX()]],
       ],
     ],
     [
@@ -176,7 +177,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function createPath(referenceKey) {
     return function({ d, c }, i) {
-      return create('path.fade-out', {
+      return create('path.fade', {
         a: {
           stroke: c,
           fill: 'none',
@@ -204,7 +205,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function createDot(flag) {
     return function({ c }, i) {
-      return create(`path.fade-out.chart__${flag ? 'dot' : 'pin'}`, {
+      return create(`path.fade.chart__${flag ? 'dot' : 'pin'}`, {
         a: {
           stroke: flag ? c : null,
           fill: 'none',
@@ -218,17 +219,13 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function createPathAndDots(referenceKey) {
     return function(с, i) {
-      return [
-        createPath(referenceKey)(с, i),
-        createDot(true)(с, i),
-        createDot(false)(с, i)
-      ]
+      return [createPath(referenceKey)(с, i), createDot(true)(с, i), createDot(false)(с, i)];
     };
   }
 
   function createLegendY() {
     let legend = [];
-    for (let i = 0; i < LEGEND_SIZE_Y; i++) {
+    for (let i = 0; i < LEGEND_Y_LINE_COUNT; i++) {
       legend.unshift(
         create('div.chart__legend-y-section', {
           d: { textContent: getLedendY(i) },
@@ -240,14 +237,20 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function createLegendX() {
-    return xAxis.map(date =>
-      create('div.chart__legend-x-section', {}, [
+    const legendX = xAxis.map(date =>
+      create('div.chart__legend-x-section.fade', {}, [
         ['div.chart__legend-x-label', { d: { textContent: getDateString(date) } }],
       ])
     );
+    bindReference(refs, 'legendXLabels', legendX);
+    return legendX;
   }
 
-  // after create and on resize
+  function onResize() {
+    setChartWidthAndOffset();
+    drawLegendX();
+  }
+
   function setChartWidthAndOffset() {
     chartWidth = refs.previewEl.offsetWidth;
     chartOffsetX = refs.previewEl.getBoundingClientRect().x;
@@ -294,8 +297,9 @@ function createChart({ columns, types, names, colors }, parentElement) {
         break;
     }
     drawPreview();
-    drawLegend(Math.sign(delta));
     drawCharts();
+    drawLegendX();
+    drawLegendY(Math.sign(delta));
   }
 
   function afterAdjust() {
@@ -306,14 +310,14 @@ function createChart({ columns, types, names, colors }, parentElement) {
     return function() {
       const direction = line.a ? 1 : -1;
       line.a = !line.a;
-      drawLinesAndSwitches();
       drawPreview();
+      drawLinesAndSwitches();
       drawCharts();
-      drawLegend(direction);
+      drawLegendY(direction);
     };
   }
 
-  function showDetailed(e) {
+  function moveLens(e) {
     const lensX = limit((getEventX(e) - chartOffsetX) / chartWidth, 0, 1);
     const x = Math.round(getStartIndex() + getViewBoxXRange() * lensX);
     if (zoomedIndex !== x) {
@@ -326,7 +330,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
         pin.setAttribute('d', dd);
       });
     }
-    // show data
+    // show data in tooltip
   }
 
   function drawLinesAndSwitches() {
@@ -336,44 +340,56 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function drawPreview() {
-    refs.rangeEl.style.left = `${start * 100}%`;
-    refs.rangeEl.style.width = `${width * 100}%`;
+    refs.rangeEl.style.left = `${start.toFixed(4) * 100}%`;
+    refs.rangeEl.style.width = `${width.toFixed(4) * 100}%`;
     refs.previewGroup.style.transform = `scale(1, ${getPreviewScale().toFixed(2)})`;
   }
 
   function drawCharts() {
-    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
-    const translate = ((100 / getViewBoxXRange()) * -getStartIndex()).toFixed(2);
+    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange()} ${maxY}`);
+    const translate = -(100 / getViewBoxXRange()) * getStartIndex();
     const scale = getLensScale().toFixed(2);
     refs.lensScaleGroup.style.transform = `scaleY(${scale})`;
     refs.lensTranslateGroup.style.transform = `translateX(${translate}%)`;
   }
 
-  let drawLegend = debounce(function(direction) {
-    for (let i = 0; i < LEGEND_SIZE_Y; i++) {
+  let drawLegendY = debounce(function(direction) {
+    for (let i = 0; i < LEGEND_Y_LINE_COUNT; i++) {
       refs[`legendY${i}`].textContent = getLedendY(i);
     }
   }, 100);
+
+  function drawLegendX() {
+    const legendXWidth = (chartWidth * xAxisLength / getViewBoxXRange()).toFixed(2);
+    refs.legendX.style.transform = `translateX(${-start * 100}%)`;
+    refs.legendX.style.width = `${legendXWidth}px`;
+    const labelsToSkipDivider = Math.ceil(MIN_LEGEND_X_LABEL_WIDHT_PX / (legendXWidth / xAxisLength));
+    refs.legendXLabels.forEach((label, i) => {
+
+      toggleClass(label, i % labelsToSkipDivider === 0, 'active')
+    });
+  }
 
   // function destroy() {
   //   document.removeEventListener('mousemove', adjust, false);
   //   document.removeEventListener('touchmove', adjust, false);
   //   document.removeEventListener('mouseup', afterAdjust, false);
   //   document.removeEventListener('touchend', afterAdjust, false);
-  //   window.removeEventListener('resize', setChartWidthAndOffset, false);
+  //   window.removeEventListener('resize', onResize, false);
   //   chartElement.remove();
   // }
 
   function init() {
     setChartWidthAndOffset();
-    drawLinesAndSwitches();
     drawPreview();
+    drawLinesAndSwitches();
     drawCharts();
+    drawLegendX();
     document.addEventListener('mousemove', adjust, false);
     document.addEventListener('touchmove', adjust, false);
     document.addEventListener('mouseup', afterAdjust, false);
     document.addEventListener('touchend', afterAdjust, false);
-    window.addEventListener('resize', setChartWidthAndOffset, false);
+    window.addEventListener('resize', onResize, false);
   }
 
   const observer = new MutationObserver(mutationCallback);

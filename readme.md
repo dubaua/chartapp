@@ -15,7 +15,7 @@
 
 # Features
 - [x] Legends Y
-- [ ] Legends X
+- [x] Legends X
 - [x] themes switching below all charts. handle chart colors with rgb function
 - [x] detailed line
 - [x] detailed dots
@@ -24,7 +24,7 @@
 
 # Animations
 - [ ] Legend Y
-- [ ] Legend X
+- [x] Legend X
 
 # Optimizing
 - [x] move auxiliary data from options keys to variables for better minification
@@ -48,4 +48,4 @@
 - [x] order of charts and dots: [chart, dot, pin]
 
 # Canvas
-try canvas if time isn't over
+- [ ] ~~try canvas if time isn't over~~
