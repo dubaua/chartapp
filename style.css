@@ -6,7 +6,8 @@
   --line-width: 1.5px;
   --dot-width: 6px;
   --spacing: 12px;
-  --base-font-size: 16px;
+  --font-size-base: 16px;
+  --font-size-tooltip: 13px;
   --chart-height: 259px;
   --transition-duration: 0.15s;
   --adjust-width: 6px;
@@ -16,6 +17,7 @@
   --color-frame: rgba(9, 114, 188, 0.14);
   --color-line: rgba(88, 151, 196, 0.11);
   --color-preview-mute: rgba(245, 249, 251, 0.75);
+  --color-tooltip-shadow: rgba(245, 249, 251, 0.75);
   --color-text: #43484b;
   --color-text--muted: #96a2aa;
 }
@@ -24,6 +26,7 @@
   :root {
     --spacing: 18px;
     --chart-height: 462px;
+    --font-size-tooltip: 16px;
   }
 }
 
@@ -33,6 +36,7 @@
   --color-frame: rgba(163, 211, 255, 0.23);
   --color-line: rgba(163, 211, 255, 0.14);
   --color-preview-mute: rgba(29, 41, 56, 0.7);
+  --color-tooltip-shadow: rgba(29, 41, 56, 0.7);
   --color-text: #e8ecee;
   --color-text--muted: #546778;
 }
@@ -42,7 +46,7 @@ body {
   background-color: var(--color-background);
   color: var(--color-text);
   font-family:  'SF Pro Text', 'Roboto', Helvetica, Arial, sans-serif;
-  font-size: var(--base-font-size);
+  font-size: var(--font-size-base);
   line-height: 1;
 }
 
@@ -70,7 +74,15 @@ body {
   margin-bottom: 45px;
 }
 
-.chart__lens {
+.lens {
+  display: none;
+}
+
+.chart__body:hover .lens {
+  display: initial;
+}
+
+.chart__details {
   margin: calc(var(--dot-width) * -1) calc(var(--spacing) * -1) 0;
   padding: var(--dot-width) var(--spacing) 0;
   line-height: 0;
@@ -88,12 +100,12 @@ body {
   transform-origin: center bottom;
 }
 
-.chart__lens svg {
+.chart__details svg {
   stroke-width: var(--detailed-stroke-width, 3);
   height: var(--chart-height, 462px);
 }
 
-.chart__zoom {
+.chart__lens {
   stroke: var(--color-line);
   stroke-width: 1;
 }
@@ -282,3 +294,35 @@ body {
 .night-mode .muting {
   filter: saturate(70%) brightness(115%);
 }
+
+.tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: var(--color-background);
+  box-shadow: 0 1px 0 1px var(--color-tooltip-shadow);
+  border-radius: 3px;
+  font-size: var(--font-size-tooltip);
+  padding: 0.75em;
+}
+.tooltip__date {
+  color: var(--color-text);
+  transition: none;
+  font-weight: bold;
+  margin-bottom: 1em;
+}
+.tooltip__set {
+  display: flex;
+}
+.tooltip__value {
+  display: none;  margin-right: 1.5em;
+}
+.tooltip__value.active {
+  display: block;
+}
+.tooltip__number {
+  font-size: 1.33em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+.tooltip__label {}

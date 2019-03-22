@@ -101,13 +101,12 @@ function createChart({ columns, types, names, colors }, parentElement) {
       {},
       [
         [
-          'div.chart__lens',
+          'div.chart__details',
           {
             l: {
               mousemove: moveLens,
               touchmove: moveLens,
             },
-            r: bindReference(refs, 'lensEl'),
           },
           [
             [
@@ -128,7 +127,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
                       { r: bindReference(refs, 'lensScaleGroup') },
                       [
                         [
-                          'path.chart__zoom',
+                          'path.chart__lens.lens',
                           {
                             a: { d: `M0 0L0 ${maxY}`, fill: 'none', 'vector-effect': 'non-scaling-stroke' },
                             r: bindReference(refs, 'lensZoom'),
@@ -145,6 +144,10 @@ function createChart({ columns, types, names, colors }, parentElement) {
         ],
         ['div.chart__legend-y', {}, [...createLegendY()]],
         ['div.chart__legend-x', { r: bindReference(refs, 'legendX') }, [...createLegendX()]],
+        ['div.tooltip.lens', {r: bindReference(refs, 'tooltip')}, [
+          ['div.tooltip__date', { r: bindReference(refs, 'tooltipDate') }],
+          ['div.tooltip__set', {}, yAxis.map(createTooltipValues)],
+        ]],
       ],
     ],
     [
@@ -205,7 +208,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function createDot(flag) {
     return function({ c }, i) {
-      return create(`path.fade.chart__${flag ? 'dot' : 'pin'}`, {
+      return create(`path.fade.lens.chart__${flag ? 'dot' : 'pin'}`, {
         a: {
           stroke: flag ? c : null,
           fill: 'none',
@@ -246,6 +249,13 @@ function createChart({ columns, types, names, colors }, parentElement) {
     return legendX;
   }
 
+  function createTooltipValues({ n, c }, i) {
+    return create('div.tooltip__value.muting', { r: bindReference(yAxis[i], 'tooltipValue'), s: { color: c } }, [
+      ['div.tooltip__number', { r: bindReference(yAxis[i], 'tooltip') }],
+      ['div.tooltip__label', { d: { textContent: n } }],
+    ]);
+  }
+
   function onResize() {
     setChartWidthAndOffset();
     moveLegendX();
@@ -257,7 +267,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function beforeAdjust(type) {
-    return function(e) {
+    return function (e) {
+      e.preventDefault();
       e.stopPropagation();
       isAdjusting = true;
       eventType = type;
@@ -267,6 +278,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
 
   function adjust(e) {
     e.preventDefault();
+    e.stopPropagation();
     if (!isAdjusting) {
       return;
     }
@@ -321,24 +333,31 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function moveLens(e) {
+    e.preventDefault();
+    e.stopPropagation();
     const lensX = limit((getEventX(e) - chartOffsetX) / chartWidth, 0, 1);
     const x = Math.round(getStartIndex() + getViewBoxXRange() * lensX);
     if (zoomedIndex !== x) {
       zoomedIndex = x;
       refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
-      yAxis.forEach(({ d, dot, pin }) => {
-        const y = maxY - d[x];
+      refs.tooltipDate.textContent = getDateString(xAxis[x], true);
+      const lensPos = refs.lensZoom.getBoundingClientRect().left;
+      const tooltipOffset = refs.tooltip.offsetWidth * lensX + chartOffsetX;
+      refs.tooltip.style.transform = `translateX(${lensPos - tooltipOffset}px)`;
+      yAxis.forEach(({ d, dot, pin, tooltip }) => {
+        const yValue = d[x];
+        const y = maxY - yValue;
         const dd = `M${x} ${y}L${x} ${y + 0.01}`;
         dot.setAttribute('d', dd);
         pin.setAttribute('d', dd);
+        tooltip.textContent = yValue;
       });
     }
-    // show data in tooltip
   }
 
   function drawLinesAndSwitches() {
-    yAxis.forEach(({ a, switcher, lensPath, previewPath, dot, pin }) => {
-      [switcher, lensPath, previewPath, dot, pin].forEach(el => toggleClass(el, a, 'active'));
+    yAxis.forEach(({ a, switcher, lensPath, previewPath, dot, pin, tooltipValue }) => {
+      [switcher, lensPath, previewPath, dot, pin, tooltipValue].forEach(el => toggleClass(el, a, 'active'));
     });
   }
 
@@ -515,9 +534,9 @@ function debounce(fn, delay) {
   };
 }
 
-function getDateString(date) {
+function getDateString(date, flag) {
   const [weekday, month, day] = new Date(date).toString().split(' ');
-  return month + ' ' + day.replace(/^0/, '');
+  return `${flag ? weekday + ', ' : ''}${month} ${day.replace(/^0/, '')}`;
 }
 
 function setTransformScale(el, scale) {
@@ -545,7 +564,7 @@ const body = document.body;
 fetch('/chart_data.json')
   .then(response => response.json())
   .then(charts =>
-    charts.slice(0,1).forEach(data => {
+    charts.slice(0, 1).forEach(data => {
       const holder = create('div.holder');
       console.time('creating');
       createChart(data, holder);

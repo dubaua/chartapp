@@ -19,7 +19,7 @@
 - [x] themes switching below all charts. handle chart colors with rgb function
 - [x] detailed line
 - [x] detailed dots
-- [ ] detailed tooltip
+- [x] detailed tooltip
 - [x] debounce legends animation 
 
 # Animations
@@ -52,6 +52,7 @@
 - [x] Firefox can't vector-effect non-scaling-stroke
 - [x] Firefox transformY distorts chart
 - [x] Safari doesn't support transform origin, while transform is set as svg attribute
-- [ ] Show lens only on hover
+- [x] Show lens only on hover
+- [x] Tooltip lags when moving backwards
 # Canvas
 - [ ] ~~try canvas if time isn't over~~
