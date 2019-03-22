@@ -117,7 +117,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
                   viewBox: `0 0 ${xAxisLength} ${maxY}`,
                   preserveAspectRatio: 'none',
                 },
-                r: bindReference(refs, 'lensSvg'),
               },
               [
                 [
@@ -354,11 +353,9 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function drawCharts() {
-    refs.lensSvg.setAttribute('viewBox', `0 0 ${xAxisLength} ${maxY}`);
     const translateX = -(100 / getViewBoxXRange()) * getStartIndex();
     const scaleX = xAxisLength / getViewBoxXRange();
     refs.lensTranslateGroup.style.transform = `translateX(${translateX}%) scaleX(${scaleX})`;
-
     const scale = `1, ${getLensScale().toFixed(2)}`;
     setTransformScale(refs.lensScaleGroup, scale);
   }
