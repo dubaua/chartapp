@@ -34,6 +34,8 @@
 - [x] optimize redrawing checking is delta changed
 - [ ] lens check edge maximum?
 - [x] fetch data asynchronously
+- [x] optimize scaling chartX
+- [ ] optimize scaling legendX
 - [ ] minimize js
 - [ ] minimize ref keys
 
@@ -50,6 +52,6 @@
 - [x] Firefox can't vector-effect non-scaling-stroke
 - [x] Firefox transformY distorts chart
 - [x] Safari doesn't support transform origin, while transform is set as svg attribute
-
+- [ ] Show lens only on hover
 # Canvas
 - [ ] ~~try canvas if time isn't over~~

@@ -7,6 +7,7 @@ const MODE_NAMES = {
   night: 'Switch to Day Mode',
 };
 const MIN_LEGEND_X_LABEL_WIDHT_PX = 120;
+const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 let currentId = 1;
 
@@ -27,7 +28,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
   let zoomedIndex = 0;
 
   let scaleLegendXRAFId = null;
-  let scaleChartsRAFId = null;
 
   for (const key in types) {
     switch (types[key]) {
@@ -194,7 +194,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
     return create(
       'button.chart__switcher.switcher',
       {
-        l: { click: toggleSwitch(yAxis[i]) },
+        l: { click: toggleLine(yAxis[i]) },
         r: bindReference(yAxis[i], 'switcher'),
       },
       [
@@ -279,7 +279,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
     }
     const nextStart = start + delta;
     let nextWidth = width + delta;
-    console.log(eventType);
     switch (eventType) {
       case 'start':
         nextWidth = width - delta;
@@ -300,28 +299,24 @@ function createChart({ columns, types, names, colors }, parentElement) {
         break;
     }
     movePreview();
-    moveCharts();
+    drawCharts();
     moveLegendX();
-    scaleChartsRAFId = requestAnimationFrame(scaleCharts);
     scaleLegendXRAFId = requestAnimationFrame(scaleLegendX);
     drawLegendY(Math.sign(delta));
   }
 
   function afterAdjust() {
     isAdjusting = false;
-    cancelAnimationFrame(scaleChartsRAFId);
     cancelAnimationFrame(scaleLegendXRAFId);
   }
 
-  function toggleSwitch(line) {
+  function toggleLine(line) {
     return function() {
       const direction = line.a ? 1 : -1;
       line.a = !line.a;
-      movePreview();
       drawLinesAndSwitches();
       scalePreview();
-      moveCharts();
-      scaleCharts();
+      drawCharts();
       drawLegendY(direction);
     };
   }
@@ -354,21 +349,18 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function scalePreview() {
-    const scale = getPreviewScale().toFixed(2);
+    const scale = `1, ${getPreviewScale().toFixed(2)}`;
     setTransformScale(refs.previewGroup, scale);
   }
 
-  function moveCharts() {
-    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
-    const translate = -(100 / getViewBoxXRange()) * getStartIndex();
-    refs.lensTranslateGroup.style.transform = `translateX(${translate}%)`;
-  }
+  function drawCharts() {
+    refs.lensSvg.setAttribute('viewBox', `0 0 ${xAxisLength} ${maxY}`);
+    const translateX = -(100 / getViewBoxXRange()) * getStartIndex();
+    const scaleX = xAxisLength / getViewBoxXRange();
+    refs.lensTranslateGroup.style.transform = `translateX(${translateX}%) scaleX(${scaleX})`;
 
-  function scaleCharts() {
-    refs.lensSvg.setAttribute('viewBox', `0 0 ${getViewBoxXRange().toFixed(2)} ${maxY}`);
-    const scale = getLensScale().toFixed(2);
+    const scale = `1, ${getLensScale().toFixed(2)}`;
     setTransformScale(refs.lensScaleGroup, scale);
-    scaleChartsRAFId = requestAnimationFrame(scaleCharts);
   }
 
   let drawLegendY = debounce(function(direction) {
@@ -397,7 +389,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
   //   document.removeEventListener('mouseup', afterAdjust, false);
   //   document.removeEventListener('touchend', afterAdjust, false);
   //   window.removeEventListener('resize', onResize, false);
-  //   cancelAnimationFrame(scaleChartsRAFId);
   //   cancelAnimationFrame(scaleLegendXRAFId);
   //   chartElement.remove();
   // }
@@ -407,8 +398,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
     movePreview();
     scalePreview();
     drawLinesAndSwitches();
-    moveCharts();
-    scaleCharts();
+    drawCharts();
     moveLegendX();
     scaleLegendX();
     document.addEventListener('mousemove', adjust, false);
@@ -534,10 +524,10 @@ function getDateString(date) {
 }
 
 function setTransformScale(el, scale) {
-  if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
-    el.setAttribute('transform', `scale(1, ${scale})`);
+  if (isFirefox) {
+    el.setAttribute('transform', `scale(${scale})`);
   } else {
-    el.style.transform = `scale(1, ${scale})`;
+    el.style.transform = `scale(${scale})`;
   }
 }
 
@@ -558,7 +548,7 @@ const body = document.body;
 fetch('/chart_data.json')
   .then(response => response.json())
   .then(charts =>
-    charts.slice(0, 1).forEach(data => {
+    charts.slice(0,1).forEach(data => {
       const holder = create('div.holder');
       console.time('creating');
       createChart(data, holder);
