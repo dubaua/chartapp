@@ -32,7 +32,6 @@
 - [x] reduce y key size
 - [x] calculate range with left + width, not left..right
 - [x] optimize redrawing checking is delta changed
-- [ ] lens check edge maximum?
 - [x] fetch data asynchronously
 - [x] optimize scaling chartX
 - [ ] optimize scaling legendX
@@ -54,5 +53,7 @@
 - [x] Safari doesn't support transform origin, while transform is set as svg attribute
 - [x] Show lens only on hover
 - [x] Tooltip lags when moving backwards
+- [ ] Firefox wrong tooltip positioning
+- [ ] restore default on touchmove and remove user select globally 
 # Canvas
 - [ ] ~~try canvas if time isn't over~~
