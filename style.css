@@ -226,8 +226,8 @@ body {
   margin-top: 22px;
 }
 
-.chart__switcher+.chart__switcher {
-  margin-left: 22px;
+.chart__switcher {
+  margin-right: 22px;
 }
 
 .switcher {
@@ -321,7 +321,8 @@ body {
   display: flex;
 }
 .tooltip__value {
-  display: none;  margin-right: 1.5em;
+  display: none;
+  margin-right: 1.5em;
 }
 .tooltip__value.active {
   display: block;

@@ -89,7 +89,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
     if (maxSelectedY === -Infinity) {
       return '';
     }
-    return Math.floor(maxSelectedY / LEGEND_Y_LINE_COUNT) * i;
+    return shortNumber(Math.floor(maxSelectedY / LEGEND_Y_LINE_COUNT) * i);
   }
 
   // create DOM with hyperscript
@@ -348,7 +348,7 @@ function createChart({ columns, types, names, colors }, parentElement) {
         const dd = `M${x} ${y}L${x} ${y + 0.01}`;
         dot.setAttribute('d', dd);
         pin.setAttribute('d', dd);
-        tooltip.textContent = yValue;
+        tooltip.textContent = shortNumber(yValue);
       });
     }
   }
@@ -574,6 +574,16 @@ function setTransform(el, transform) {
   }
 }
 
+function shortNumber(number) {
+  if (number > 1e6) {
+    return (number/1e6).toFixed(1) + 'M';
+  }
+  if (number > 1e3) {
+    return (number/1e3).toFixed(1) + 'K';
+  }
+  return number;
+}
+
 /* PERFORMANCE TESTING */
 
 function ctt(fn, msg, count = 1) {
@@ -591,7 +601,7 @@ const body = document.body;
 fetch('/chart_data.json')
   .then(response => response.json())
   .then(charts =>
-    charts.slice(0, 1).forEach(data => {
+    charts.forEach(data => {
       const holder = create('div.holder');
       console.time('creating');
       createChart(data, holder);
