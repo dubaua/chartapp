@@ -332,7 +332,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function moveLens(e) {
-    e.preventDefault();
     e.stopPropagation();
     const lensX = limit((getEventX(e) - chartOffsetX) / chartWidth, 0, 1);
     const x = Math.round(getStartIndex() + getViewBoxXRange() * lensX);
@@ -389,14 +388,14 @@ function createChart({ columns, types, names, colors }, parentElement) {
     refs.legendX.style.transform = `translateX(${-start * 100}%)`;
   }
 
-  function scaleLegendX() {
+  let scaleLegendX = debounce (function() {
     const legendXWidth = ((chartWidth * xAxisLength) / getViewBoxXRange()).toFixed(2);
     refs.legendX.style.width = `${legendXWidth}px`;
     const labelsToSkipDivider = Math.ceil(MIN_LEGEND_X_LABEL_WIDHT_PX / (legendXWidth / xAxisLength));
     refs.legendXLabels.forEach((label, i) => {
       toggleClass(label, i % labelsToSkipDivider === 0, 'active');
     });
-  }
+  },16)
 
   // function destroy() {
   //   document.removeEventListener('mousemove', adjust, false);
@@ -530,6 +529,36 @@ function debounce(fn, delay) {
       fn.apply(null, args);
     }, delay);
   };
+}
+
+function throttle(func, ms) {
+
+  var isThrottled = false,
+    savedArgs,
+    savedThis;
+
+  function wrapper() {
+
+    if (isThrottled) { // (2)
+      savedArgs = arguments;
+      savedThis = this;
+      return;
+    }
+
+    func.apply(this, arguments); // (1)
+
+    isThrottled = true;
+
+    setTimeout(function() {
+      isThrottled = false; // (3)
+      if (savedArgs) {
+        wrapper.apply(savedThis, savedArgs);
+        savedArgs = savedThis = null;
+      }
+    }, ms);
+  }
+
+  return wrapper;
 }
 
 function getDateString(date, flag) {

@@ -34,7 +34,7 @@
 - [x] optimize redrawing checking is delta changed
 - [x] fetch data asynchronously
 - [x] optimize scaling chartX
-- [ ] optimize scaling legendX
+- [x] optimize scaling legendX with throttle
 - [ ] minimize js
 - [ ] minimize ref keys
 
