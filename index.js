@@ -27,8 +27,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
   let refs = {};
   let zoomedIndex = 0;
 
-  let scaleLegendXRAFId = null;
-
   for (const key in types) {
     switch (types[key]) {
       case 'x':
@@ -314,13 +312,12 @@ function createChart({ columns, types, names, colors }, parentElement) {
     movePreview();
     drawCharts();
     moveLegendX();
-    scaleLegendXRAFId = requestAnimationFrame(scaleLegendX);
+    scaleLegendX();
     drawLegendY(Math.sign(delta));
   }
 
   function afterAdjust() {
     isAdjusting = false;
-    cancelAnimationFrame(scaleLegendXRAFId);
   }
 
   function toggleLine(line) {
@@ -343,8 +340,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
       zoomedIndex = x;
       refs.lensZoom.setAttribute('d', `M${x} 0L${x} ${maxY}`);
       refs.tooltipDate.textContent = getDateString(xAxis[x], true);
-      const lensPos = refs.lensZoom.getBoundingClientRect().left;
-      const tooltipOffset = refs.tooltip.offsetWidth * lensX + chartOffsetX;
+      const lensPos = (x - getStartIndex()) / getViewBoxXRange() * chartWidth;
+      const tooltipOffset = refs.tooltip.offsetWidth * lensX;
       refs.tooltip.style.transform = `translateX(${lensPos - tooltipOffset}px)`;
       yAxis.forEach(({ d, dot, pin, tooltip }) => {
         const yValue = d[x];
@@ -399,7 +396,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
     refs.legendXLabels.forEach((label, i) => {
       toggleClass(label, i % labelsToSkipDivider === 0, 'active');
     });
-    scaleLegendXRAFId = requestAnimationFrame(scaleLegendX);
   }
 
   // function destroy() {
@@ -408,7 +404,6 @@ function createChart({ columns, types, names, colors }, parentElement) {
   //   document.removeEventListener('mouseup', afterAdjust, false);
   //   document.removeEventListener('touchend', afterAdjust, false);
   //   window.removeEventListener('resize', onResize, false);
-  //   cancelAnimationFrame(scaleLegendXRAFId);
   //   chartElement.remove();
   // }
 
