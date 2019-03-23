@@ -367,16 +367,17 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function scalePreview() {
-    const scale = `1, ${getPreviewScale().toFixed(2)}`;
-    setTransformScale(refs.previewGroup, scale);
+    const transform = `scale(1, ${getPreviewScale().toFixed(2)})`;
+    setTransform(refs.previewGroup, transform);
   }
 
   function drawCharts() {
     const translateX = -(100 / getViewBoxXRange()) * getStartIndex();
     const scaleX = xAxisLength / getViewBoxXRange();
-    refs.lensTranslateGroup.style.transform = `translateX(${translateX}%) scaleX(${scaleX})`;
-    const scale = `1, ${getLensScale().toFixed(2)}`;
-    setTransformScale(refs.lensScaleGroup, scale);
+    const transform = `matrix(${scaleX},0,0,1,${translateX},0)`;
+    setTransform(refs.lensTranslateGroup, transform);
+    const scale = `scale(1, ${getLensScale().toFixed(2)})`;
+    setTransform(refs.lensScaleGroup, scale);
   }
 
   let drawLegendY = debounce(function(direction) {
@@ -539,11 +540,11 @@ function getDateString(date, flag) {
   return `${flag ? weekday + ', ' : ''}${month} ${day.replace(/^0/, '')}`;
 }
 
-function setTransformScale(el, scale) {
+function setTransform(el, transform) {
   if (isFirefox) {
-    el.setAttribute('transform', `scale(${scale})`);
+    el.setAttribute('transform', transform);
   } else {
-    el.style.transform = `scale(${scale})`;
+    el.style.transform = transform;
   }
 }
 
