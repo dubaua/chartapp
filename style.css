@@ -56,6 +56,10 @@ body {
   transition-property: background-color, background, border-color, box-shadow, color, opacity, stroke;
   transition-duration: var(--transition-duration);
   transition-timing-function: var(--ease-in-sine);
+  -webkit-touch-callout: none; /* iOS Safari */ 
+  -webkit-user-select: none; /* Safari */ 
+  -moz-user-select: none; /* Firefox */ 
+  user-select: none;
 }
 
 .fade {

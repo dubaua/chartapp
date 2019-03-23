@@ -122,9 +122,11 @@ function createChart({ columns, types, names, colors }, parentElement) {
                   'g',
                   { r: bindReference(refs, 'lensTranslateGroup') },
                   [
+                    ['g',
+                    { r: bindReference(refs, 'lensScaleXGroup')},
                     [
-                      'g.chart__group',
-                      { r: bindReference(refs, 'lensScaleGroup') },
+                      ['g.chart__group',
+                      { r: bindReference(refs, 'lensScaleYGroup') },
                       [
                         [
                           'path.chart__lens.lens',
@@ -134,8 +136,8 @@ function createChart({ columns, types, names, colors }, parentElement) {
                           },
                         ],
                         ...[].concat(...yAxis.map(createPathAndDots('lensPath'))),
-                      ],
-                    ],
+                      ],]
+                    ],]
                   ],
                 ],
               ],
@@ -372,12 +374,12 @@ function createChart({ columns, types, names, colors }, parentElement) {
   }
 
   function drawCharts() {
-    const translateX = -(100 / getViewBoxXRange()) * getStartIndex();
-    const scaleX = xAxisLength / getViewBoxXRange();
-    const transform = `matrix(${scaleX},0,0,1,${translateX},0)`;
-    setTransform(refs.lensTranslateGroup, transform);
-    const scale = `scale(1, ${getLensScale().toFixed(2)})`;
-    setTransform(refs.lensScaleGroup, scale);
+    const translateX = (-(100 / getViewBoxXRange()) * getStartIndex()).toFixed(2);
+    const scaleX = (xAxisLength / getViewBoxXRange()).toFixed(2);
+    const scaleY = getLensScale().toFixed(2);
+    refs.lensTranslateGroup.style.transform = `translate(${translateX}%, 0)`;
+    setTransform(refs.lensScaleXGroup, `scale(${scaleX}, 1)`);
+    setTransform(refs.lensScaleYGroup, `scale(1, ${scaleY})`);
   }
 
   let drawLegendY = debounce(function(direction) {

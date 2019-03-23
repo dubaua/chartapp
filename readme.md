@@ -53,7 +53,8 @@
 - [x] Safari doesn't support transform origin, while transform is set as svg attribute
 - [x] Show lens only on hover
 - [x] Tooltip lags when moving backwards
-- [ ] Firefox wrong tooltip positioning
-- [ ] restore default on touchmove and remove user select globally 
+- [x] Firefox wrong tooltip positioning
+- [x] make separate group for each transform
+- [x] restore default on touchmove and remove user select globally 
 # Canvas
 - [ ] ~~try canvas if time isn't over~~
